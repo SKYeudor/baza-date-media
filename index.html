@@ -3,660 +3,428 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IDBDC - Biblioteca Media Personală</title>
+    <title>IDBDC Media</title>
+    <!-- Tailwind CSS pentru un design modern -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- FontAwesome pentru pictograme (inclusiv logo-ul IMDB) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #f4f6f9; margin: 0; padding: 20px; color: #333; transition: background-color 0.3s ease; }
-        
-        /* Fundaluri specifice pe secțiuni */
-        body.bg-carti { background-color: #fcf8f2; } 
-        body.bg-filme { background-color: #f0f3f5; } 
-        body.bg-muzica { background-color: #f5f0f6; } 
-
-        .container { max-width: 1250px; margin: 0 auto; display: none; }
-        h1 { text-align: center; color: #2c3e50; margin-bottom: 20px; font-size: 1.8rem; letter-spacing: 1px; }
-        
-        /* Ecran Login */
-        #login-screen { max-width: 400px; margin: 100px auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; }
-        #login-screen h2 { color: #2c3e50; margin-top: 0; margin-bottom: 20px; font-size: 1.4rem; }
-        #login-screen input { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; text-align: center; }
-        #login-screen button { width: 100%; padding: 12px; background: #2c3e50; color: white; border: none; border-radius: 4px; font-weight: bold; font-size: 1rem; cursor: pointer; }
-        #login-error { color: #e74c3c; font-weight: bold; margin-top: 10px; display: none; }
-
-        /* Indicator Mod și Bară Status */
-        .status-bar { background: #34495e; color: white; padding: 10px 20px; border-radius: 6px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .status-right { display: flex; align-items: center; gap: 15px; }
-        .badge-mode { padding: 4px 10px; border-radius: 4px; font-weight: bold; }
-        .mode-read { background: #f1c40f; color: #2c3e50; }
-        .mode-write { background: #2ecc71; color: white; }
-        .btn-logout { background: #e74c3c; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
-        .btn-logout:hover { background: #c0392b; }
-
-        /* Navigare Tab-uri */
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 3px solid #bdc3c7; padding-bottom: 5px; }
-        .tab-btn { padding: 12px 25px; font-size: 1.1rem; font-weight: bold; background: #e0e0e0; border: none; border-radius: 6px 6px 0 0; cursor: pointer; transition: all 0.2s; color: #555; }
-        
-        .tab-btn#btn-tab-carti.active { background: #8e6e53; color: white; } 
-        .tab-btn#btn-tab-filme.active { background: #2c3e50; color: white; } 
-        .tab-btn#btn-tab-muzica.active { background: #6c5ce7; color: white; } 
-        
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-
-        /* Formular Căutare - Structură extinsă */
-        .search-container-block { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .search-inputs-line { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 12px; }
-        .search-inputs-line.four-cols { grid-template-columns: 1fr 1fr 1.2fr 1.2fr; }
-        
-        .search-group { display: flex; flex-direction: column; }
-        .search-group label { font-size: 0.8rem; font-weight: 600; margin-bottom: 4px; color: #7f8c8d; }
-        .search-group input, .search-group select { padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.95rem; height: 38px; }
-
-        /* Linia a doua din căutare: Butoane control căutare */
-        .search-actions-line { display: flex; gap: 10px; align-items: center; border-top: 1px dotted #ecf0f1; padding-top: 10px; }
-        
-        /* Structură pe 2 coloane */
-        .main-layout { display: grid; grid-template-columns: 1fr 1.4fr; gap: 20px; }
-        @media (max-width: 950px) { .search-inputs-line, .search-inputs-line.four-cols { grid-template-columns: 1fr; } .main-layout { grid-template-columns: 1fr; } }
-
-        /* Coloana Stânga: Tabel Rezultate */
-        .table-section { background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding: 15px; align-self: start; }
-        .table-section h3 { margin-top: 0; color: #34495e; border-bottom: 2px solid #ecf0f1; padding-bottom: 8px; }
-        .table-wrapper { max-height: 540px; overflow-y: auto; }
-        table { width: 100%; border-collapse: collapse; text-align: left; }
-        th, td { padding: 10px; border-bottom: 1px solid #ddd; cursor: pointer; font-size: 0.95rem; }
-        th { background-color: #34495e; color: white; position: sticky; top: 0; z-index: 10; }
-        tr.selected-row { background-color: #d5dbdb !important; font-weight: bold; }
-        tr:hover { background-color: #f1f2f6; }
-
-        /* Coloana Dreapta: Zona Detalii / CRUD */
-        .crud-section { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .crud-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ecf0f1; padding-bottom: 10px; margin-bottom: 15px; }
-        .crud-header h3 { margin: 0; color: #34495e; font-size: 1.15rem; }
-        .badge { font-size: 0.8rem; padding: 4px 10px; background: #7f8c8d; color: white; border-radius: 12px; font-weight: bold; }
-        
-        .crud-content { display: flex; gap: 20px; }
-        @media (max-width: 650px) { .crud-content { flex-direction: column-reverse; } }
-        
-        .fields-grid { flex: 1.5; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .full-width { grid-column: span 2; }
-        
-        .form-group { display: flex; flex-direction: column; }
-        .form-group label { font-size: 0.8rem; font-weight: 600; margin-bottom: 3px; color: #555; }
-        .form-group input, .form-group select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem; background: #fff; }
-
-        /* Zone Imagini */
-        .image-card-container { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: start; min-width: 180px; }
-        .image-card { background-color: #eaeded; border: 2px dashed #bdc3c7; border-radius: 6px; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; width: 100%; }
-        .image-card img { width: 100%; height: 100%; object-fit: cover; }
-        .no-image-text { color: #7f8c8d; font-size: 0.8rem; text-align: center; padding: 10px; font-weight: 600; }
-
-        .box-carte { height: 270px; max-width: 180px; }
-        .box-film { height: 268px; max-width: 190px; }
-        .box-muzica { height: 190px; max-width: 190px; }
-
-        /* Butoane */
-        .btn-container { margin-top: 15px; display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid #ecf0f1; padding-top: 15px; }
-        button.action { padding: 8px 18px; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.9rem; }
-        
-        .btn-launch-search { background-color: #2c3e50; color: white; }
-        .btn-reset-search { background-color: #7f8c8d; color: white; }
-        .btn-add-mode { background-color: #3498db; color: white; height: 34px; padding: 0 15px; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; margin-left: auto; }
-        
-        .btn-save { background-color: #2ecc71; color: white; }
-        .btn-delete { background-color: #e74c3c; color: white; }
-        .btn-clear { background-color: #95a5a6; color: white; }
-        
-        /* Stare inactivă (Dezactivat) pentru modul Vizualizare */
-        button.action:disabled, .btn-add-mode:disabled { background-color: #d5dbdb !important; color: #7f8c8d !important; cursor: not-allowed !important; opacity: 0.7; }
-        
-        /* Control dinamic vizibilitate inserare */
-        .write-only-block { display: none; }
-        
-        /* Loading Overlay */
-        #loading-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(255,255,255,0.8); z-index:9999; justify-content:center; align-items:center; flex-direction:column; font-weight:bold; color:#2c3e50; }
-        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #2c3e50; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 10px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .imdb-btn-active {
+            background-color: #f5c518;
+            color: #000000;
+        }
+        .imdb-btn-active:hover {
+            background-color: #e2b616;
+        }
+        .imdb-btn-inactive {
+            background-color: #374151;
+            color: #9ca3af;
+            cursor: not-allowed;
+        }
     </style>
 </head>
-<body>
+<body class="bg-gray-900 text-gray-100 min-h-screen font-sans">
 
-<div id="login-screen">
-    <h2>Acces bază de date media</h2>
-    <input type="password" id="pass-input" placeholder="Introduceți parola de acces..." onkeydown="if(event.key==='Enter') verifyLogin()">
-    <button onclick="verifyLogin()">Autentificare</button>
-    <div id="login-error">Parolă incorectă! Încercați din nou.</div>
-</div>
-
-<div id="loading-overlay"><div class="spinner"></div><span id="loading-text">Se sincronizează cu cloud...</span></div>
-
-<div class="container" id="app-container">
-    <div class="status-bar">
-        <div><strong>Utilizator:</strong> SKYeudor</div>
-        <div class="status-right">
-            <div id="mode-indicator"></div>
-            <button class="btn-logout" onclick="logoutApplication()">Ieșire</button>
-        </div>
-    </div>
-    
-    <h1>Biblioteca Media Personală</h1>
-
-    <div class="tabs">
-        <button class="tab-btn active" id="btn-tab-carti" onclick="switchCategory('carti')">CĂRȚI</button>
-        <button class="tab-btn" id="btn-tab-filme" onclick="switchCategory('filme')">FILME & SERIALE</button>
-        <button class="tab-btn" id="btn-tab-muzica" onclick="switchCategory('muzica')">MUZICĂ</button>
-    </div>
-
-    <div id="sec-carti" class="tab-content active">
-        <div class="search-container-block">
-            <div class="search-inputs-line">
-                <div class="search-group">
-                    <label>Tip Format</label>
-                    <select id="s-carte-format"><option value="Toate">Toate</option><option value="Format Tipărit">Tipărit</option><option value="Format Electronic">Electronic</option></select>
-                </div>
-                <div class="search-group"><label>Caută după Autor</label><input type="text" id="s-carte-autor" placeholder="Scrie autor..."></div>
-                <div class="search-group"><label>Caută după Titlu</label><input type="text" id="s-carte-titlu" placeholder="Scrie titlu..."></div>
+    <!-- ECRAN DE AUTENTIFICARE -->
+    <div id="login-screen" class="flex items-center justify-center min-h-screen px-4">
+        <div class="bg-gray-800 p-8 rounded-2xl shadow-2xl w-full max-w-md border border-gray-700">
+            <div class="text-center mb-8">
+                <i class="fa-solid fa-photo-film text-5xl text-blue-500 mb-3"></i>
+                <h1 class="text-2xl font-bold tracking-wide text-white">IDBDC Media</h1>
+                <p class="text-gray-400 text-sm mt-1">Introduceți parola pentru acces</p>
             </div>
-            <div class="search-actions-line">
-                <button class="action btn-launch-search" onclick="renderCarti()">Lansează Căutarea</button>
-                <button class="action btn-reset-search" onclick="resetSearchFilters('carti')">Resetează Criterii</button>
-                <button class="btn-add-mode write-only-block" id="add-btn-carti" onclick="setMode('carti', 'insert')">+ Inserare element nou</button>
+            <div class="space-y-4">
+                <input type="password" id="password-input" placeholder="Parolă..." 
+                    class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl focus:outline-none focus:border-blue-500 text-white placeholder-gray-400 text-center text-lg tracking-widest">
+                <button onclick="handleLogin()" 
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition duration-200 shadow-lg shadow-blue-900/30">
+                    Acces Bază de Date
+                </button>
+                <p id="login-error" class="text-red-400 text-sm text-center hidden"><i class="fa-solid fa-circle-exclamation mr-1"></i> Parolă incorectă!</p>
             </div>
         </div>
-        
-        <div class="main-layout">
-            <div class="table-section">
-                <h3>Lista Cărți</h3>
-                <div class="table-wrapper">
-                    <table>
-                        <thead><tr><th>Autor</th><th>Titlu</th></tr></thead>
-                        <tbody id="t-carti-body"></tbody>
-                    </table>
+    </div>
+
+    <!-- APLICAȚIA PRINCIPALĂ (Ascunsă inițial) -->
+    <div id="app-screen" class="hidden">
+        <!-- Antet fix -->
+        <header class="bg-gray-800 border-b border-gray-700 sticky top-0 z-50 shadow-md">
+            <div class="max-w-7xl  mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-database text-blue-500 text-2xl"></i>
+                    <h1 class="text-xl font-bold tracking-wider text-white">IDBDC <span class="text-blue-400 font-medium">Media Catalog</span></h1>
+                    <span id="role-badge" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-700 text-gray-300">Vizualizare</span>
                 </div>
-            </div>
-            <div class="crud-section">
-                <div class="crud-header"><h3 id="h-carti-title">Vizualizare caracteristici</h3><span class="badge" id="b-carti">Informații</span></div>
-                <div class="crud-content">
-                    <div class="fields-grid">
-                        <div class="form-group"><label>Tip Format</label><select id="c-format"><option value="Format Tipărit">Format Tipărit</option><option value="Format Electronic">Format Electronic</option></select></div>
-                        <div class="form-group"><label>Gen literar</label><input type="text" id="c-gen"></div>
-                        <div class="form-group full-width"><label>Autor *</label><input type="text" id="c-autor"></div>
-                        <div class="form-group full-width"><label>Titlu *</label><input type="text" id="c-titlu"></div>
-                        <div class="form-group"><label>An apariție</label><input type="number" id="c-an"></div>
-                        <div class="form-group"><label>Nr. pagini</label><input type="number" id="c-pagini"></div>
-                        <div class="form-group"><label>Editura</label><input type="text" id="c-editura"></div>
-                        <div class="form-group"><label>Colecția</label><input type="text" id="c-colectia"></div>
-                        <div class="form-group full-width"><label>Seria</label><input type="text" id="c-seria"></div>
-                        <div class="form-group full-width"><label>URL Copertă Imagine</label><input type="text" id="c-coperta" oninput="previewImg('carti')"></div>
+                <div class="flex items-center gap-3 w-full sm:w-auto">
+                    <div class="relative w-full sm:w-64">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-gray-400 text-sm"></i>
+                        <input type="text" id="search-input" oninput="renderTable()" placeholder="Caută titlu, autor, gen..." 
+                            class="w-full pl-10 pr-4 py-2 bg-gray-700 border border-gray-600 rounded-xl focus:outline-none focus:border-blue-500 text-sm placeholder-gray-400">
                     </div>
-                    <div class="image-card-container"><label style="font-size:0.8rem; font-weight:600; margin-bottom:4px;">Copertă</label><div class="image-card box-carte" id="p-carti-img"><div class="no-image-text">Fără imagine</div></div></div>
-                </div>
-                
-                <div class="btn-container">
-                    <button class="action btn-delete crud-btn" id="del-carti" onclick="deleteItem('carti')">Șterge</button>
-                    <button class="action btn-clear crud-btn" id="clear-carti" onclick="clearFields('carti')">Resetează</button>
-                    <button class="action btn-save crud-btn" id="save-carti" onclick="saveItem('carti')">Salvează</button>
+                    <button onclick="logout()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-xl text-sm transition font-medium">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <div id="sec-filme" class="tab-content">
-        <div class="search-container-block">
-            <div class="search-inputs-line four-cols">
-                <div class="search-group">
-                    <label>Tip Conținut</label>
-                    <select id="s-film-tip"><option value="Toate">Toate</option><option value="Film">Film</option><option value="Serial">Serial</option></select>
-                </div>
-                <div class="search-group">
-                    <label>Status vizionare</label>
-                    <select id="s-film-status"><option value="Toate">Toate</option><option value="Vizionat">Vizionat</option><option value="De vizionat">De vizionat</option><option value="Rezervă">Rezervă</option></select>
-                </div>
-                <div class="search-group"><label>Caută după Actor</label><input type="text" id="s-film-actor" placeholder="Scrie actor..."></div>
-                <div class="search-group"><label>Caută după Titlu</label><input type="text" id="s-film-titlu" placeholder="Scrie titlu..."></div>
-            </div>
-            <div class="search-actions-line">
-                <button class="action btn-launch-search" onclick="renderFilme()">Lansează Căutarea</button>
-                <button class="action btn-reset-search" onclick="resetSearchFilters('filme')">Resetează Criterii</button>
-                <button class="btn-add-mode write-only-block" id="add-btn-filme" onclick="setMode('filme', 'insert')">+ Inserare element nou</button>
-            </div>
-        </div>
-        
-        <div class="main-layout">
-            <div class="table-section">
-                <h3>Lista Filme & Seriale</h3>
-                <div class="table-wrapper">
-                    <table>
-                        <thead><tr><th>Titlu (Original / Română)</th></tr></thead>
-                        <tbody id="t-filme-body"></tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="crud-section">
-                <div class="crud-header"><h3 id="h-filme-title">Vizualizare caracteristici</h3><span class="badge" id="b-filme">Informații</span></div>
-                <div class="crud-content">
-                    <div class="fields-grid">
-                        <div class="form-group"><label>Tip Conținut</label><select id="f-tip"><option value="Film">Film</option><option value="Serial">Serial</option></select></div>
-                        <div class="form-group"><label>Status *</label><select id="f-status"><option value="De vizionat">De vizionat</option><option value="Vizionat">Vizionat</option><option value="Rezervă">Rezervă</option></select></div>
-                        <div class="form-group"><label>Gen film</label><input type="text" id="f-gen"></div>
-                        <div class="form-group"><label>An lansare</label><input type="number" id="f-an"></div>
-                        <div class="form-group full-width"><label>Titlu original *</label><input type="text" id="f-titlu-orig"></div>
-                        <div class="form-group full-width"><label>Titlu limba română</label><input type="text" id="f-titlu-ro"></div>
-                        <div class="form-group"><label>Regizor</label><input type="text" id="f-regizor"></div>
-                        <div class="form-group"><label>Durată (min/sezoane)</label><input type="text" id="f-durata"></div>
-                        <div class="form-group full-width"><label>În distribuție (Actori) *</label><input type="text" id="f-distributie"></div>
-                        <div class="form-group full-width"><label>URL Afiș Comercial</label><input type="text" id="f-coperta" oninput="previewImg('filme')"></div>
-                    </div>
-                    <div class="image-card-container"><label style="font-size:0.8rem; font-weight:600; margin-bottom:4px;">Afiș Cinema</label><div class="image-card box-film" id="p-filme-img"><div class="no-image-text">Fără afiș</div></div></div>
-                </div>
-                
-                <div class="btn-container">
-                    <button class="action btn-delete crud-btn" id="del-filme" onclick="deleteItem('filme')">Șterge</button>
-                    <button class="action btn-clear crud-btn" id="clear-filme" onclick="clearFields('filme')">Resetează</button>
-                    <button class="action btn-save crud-btn" id="save-filme" onclick="saveItem('filme')">Salvează</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="sec-muzica" class="tab-content">
-        <div class="search-container-block">
-            <div class="search-inputs-line">
-                <div class="search-group">
-                    <label>Tip Lansare</label>
-                    <select id="s-muzica-tip"><option value="Toate">Toate</option><option value="Album">Album</option><option value="Single">Single</option></select>
-                </div>
-                <div class="search-group"><label>Caută după Artist/Trupă</label><input type="text" id="s-muzica-artist" placeholder="Scrie artist..."></div>
-                <div class="search-group"><label>Caută după Titlu</label><input type="text" id="s-muzica-titlu" placeholder="Scrie titlu..."></div>
-            </div>
-            <div class="search-actions-line">
-                <button class="action btn-launch-search" onclick="renderMuzica()">Lansează Căutarea</button>
-                <button class="action btn-reset-search" onclick="resetSearchFilters('muzica')">Resetează Criterii</button>
-                <button class="btn-add-mode write-only-block" id="add-btn-muzica" onclick="setMode('muzica', 'insert')">+ Inserare element nou</button>
-            </div>
-        </div>
-        
-        <div class="main-layout">
-            <div class="table-section">
-                <h3>Lista Albume & Single-uri</h3>
-                <div class="table-wrapper">
-                    <table>
-                        <thead><tr><th>Artist / Trupă</th><th>Titlu</th></tr></thead>
-                        <tbody id="t-muzica-body"></tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="crud-section">
-                <div class="crud-header"><h3 id="h-muzica-title">Vizualizare caracteristici</h3><span class="badge" id="b-muzica">Informații</span></div>
-                <div class="crud-content">
-                    <div class="fields-grid">
-                        <div class="form-group"><label>Tip Lansare</label><select id="m-tip"><option value="Album">Album</option><option value="Single">Single</option></select></div>
-                        <div class="form-group"><label>Gen muzical</label><input type="text" id="m-gen"></div>
-                        <div class="form-group full-width"><label>Artist / Trupă *</label><input type="text" id="m-artist"></div>
-                        <div class="form-group full-width"><label>Titlu Album / Single *</label><input type="text" id="m-titlu"></div>
-                        <div class="form-group"><label>An lansare</label><input type="number" id="m-an"></div>
-                        <div class="form-group"><label>Titlu Film (Soundtrack)</label><input type="text" id="m-soundtrack"></div>
-                        <div class="form-group full-width"><label>Extras din album / Coloană sonoră</label><input type="text" id="m-extras"></div>
-                        <div class="form-group full-width"><label>URL Copertă Album</label><input type="text" id="m-coperta" oninput="previewImg('muzica')"></div>
-                    </div>
-                    <div class="image-card-container"><label style="font-size:0.8rem; font-weight:600; margin-bottom:4px;">Copertă Album</label><div class="image-card box-muzica" id="p-muzica-img"><div class="no-image-text">Fără imagine</div></div></div>
-                </div>
-                
-                <div class="btn-container">
-                    <button class="action btn-delete crud-btn" id="del-muzica" onclick="deleteItem('muzica')">Șterge</button>
-                    <button class="action btn-clear crud-btn" id="clear-muzica" onclick="clearFields('muzica')">Resetează</button>
-                    <button class="action btn-save crud-btn" id="save-muzica" onclick="saveItem('muzica')">Salvează</button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-    const CONFIG = {
-        p1: "brasov",
-        p2: "timisoara$KY",
-        gitUser: "SKYeudor",
-        gitRepo: "baza-date-media",
-        gitFile: "date.json",
-        gitToken: "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"
-    };
-
-    let db = { carti: [], filme: [], muzica: [] };
-    let currentMode = "READ"; 
-    let selectedIds = { carti: null, filme: null, muzica: null };
-    let shaFile = ""; 
-
-    function showLoading(show, text = "Se sincronizează cu cloud...") {
-        document.getElementById('loading-text').innerText = text;
-        document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none';
-    }
-
-    function verifyLogin() {
-        const input = document.getElementById('pass-input').value;
-        const err = document.getElementById('login-error');
-        
-        if (input === CONFIG.p1) {
-            currentMode = "READ";
-            initializeAccess();
-        } else if (input === CONFIG.p2) {
-            currentMode = "WRITE";
-            initializeAccess();
-        } else {
-            err.style.display = "block";
-        }
-    }
-
-    function initializeAccess() {
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('app-container').style.display = 'block';
-        document.getElementById('login-error').style.display = 'none';
-        document.getElementById('pass-input').value = '';
-        
-        const ind = document.getElementById('mode-indicator');
-        if (currentMode === "READ") {
-            ind.innerHTML = '<span class="badge-mode mode-read">MOD DOAR VIZUALIZARE</span>';
-            // Ascunde butoanele de inserare element nou
-            document.querySelectorAll('.write-only-block').forEach(el => el.style.setProperty('display', 'none', 'important'));
-            // Blochează casetele de text introducere date
-            document.querySelectorAll('.crud-section input, .crud-section select').forEach(el => el.disabled = true);
-            // Inactivează butoanele CRUD de jos
-            document.querySelectorAll('.crud-btn').forEach(btn => btn.disabled = true);
-        } else {
-            ind.innerHTML = '<span class="badge-mode mode-write">MOD EDITARE COMPLETĂ</span>';
-            // Afișează butoanele de inserare element nou
-            document.querySelectorAll('.write-only-block').forEach(el => el.style.setProperty('display', 'block', 'important'));
-            // Deblochează casetele de text introducere date
-            document.querySelectorAll('.crud-section input, .crud-section select').forEach(el => el.disabled = false);
-            // Activează butoanele CRUD de jos
-            document.querySelectorAll('.crud-btn').forEach(btn => btn.disabled = false);
-        }
-        
-        loadDataFromCloud();
-    }
-
-    function logoutApplication() {
-        db = { carti: [], filme: [], muzica: [] };
-        selectedIds = { carti: null, filme: null, muzica: null };
-        shaFile = "";
-        
-        clearFields('carti');
-        clearFields('filme');
-        clearFields('muzica');
-        resetSearchFilters('carti');
-        resetSearchFilters('filme');
-        resetSearchFilters('muzica');
-        
-        document.body.className = ''; 
-        document.getElementById('app-container').style.display = 'none';
-        document.getElementById('login-screen').style.display = 'block';
-    }
-
-    async function loadDataFromCloud() {
-        showLoading(true, "Se descarcă datele din seiful privat...");
-        const url = `https://api.github.com/repos/${CONFIG.gitUser}/${CONFIG.gitRepo}/contents/${CONFIG.gitFile}`;
-        
-        try {
-            let response = await fetch(url, {
-                method: "GET",
-                headers: { "Authorization": `token ${CONFIG.gitToken}`, "Accept": "application/vnd.github.v3+json" }
-            });
             
-            if (response.ok) {
-                let resData = await response.json();
-                shaFile = resData.sha;
-                let rawContent = atob(resData.content);
-                let decodedContent = decodeURIComponent(escape(rawContent));
-                db = JSON.parse(decodedContent);
-            }
-        } catch (e) {
-            alert("Eroare la conectarea cu GitHub.");
+            <!-- Selector Categorii -->
+            <div class="max-w-7xl mx-auto px-4 pb-3 flex gap-2 overflow-x-auto">
+                <button onclick="switchCategory('filme')" id="btn-filme" class="px-4 py-1.5 rounded-lg text-sm font-medium transition whitespace-nowrap bg-blue-600 text-white">
+                    <i class="fa-solid fa-film mr-1.5"></i> Filme & Seriale
+                </button>
+                <button onclick="switchCategory('muzica')" id="btn-muzica" class="px-4 py-1.5 rounded-lg text-sm font-medium transition whitespace-nowrap bg-gray-700 text-gray-300 hover:bg-gray-600">
+                    <i class="fa-solid fa-music mr-1.5"></i> Muzică (MP3)
+                </button>
+                <button onclick="switchCategory('carti')" id="btn-carti" class="px-4 py-1.5 rounded-lg text-sm font-medium transition whitespace-nowrap bg-gray-700 text-gray-300 hover:bg-gray-600">
+                    <i class="fa-solid fa-book mr-1.5"></i> Cărți & Documente
+                </button>
+            </div>
+        </header>
+
+        <!-- Conținut Principal -->
+        <main class="max-w-7xl mx-auto px-4 py-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- Secțiunea Tabel (Ocupă 2 coloane pe ecrane mari) -->
+                <div class="lg:col-span-2 bg-gray-800 rounded-2xl border border-gray-700 p-4 shadow-xl overflow-hidden flex flex-col">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 id="table-title" class="text-lg font-semibold text-white">Listă Filme & Seriale</h2>
+                        <span id="item-count" class="text-xs bg-gray-700 text-gray-300 px-2.5 py-1 rounded-md font-mono">0 elemente</span>
+                    </div>
+                    <div class="overflow-x-auto rounded-xl border border-gray-700">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-750 border-b border-gray-700 text-gray-300 text-xs font-semibold uppercase tracking-wider">
+                                    <th class="p-3">Cod</th>
+                                    <th id="th-art-tit" class="p-3">Titlu</th>
+                                    <th id="th-detalii" class="p-3">Gen / Detalii</th>
+                                    <th class="p-3 text-center">Acțiuni</th>
+                                </tr>
+                            </thead>
+                            <tbody id="data-tbody" class="text-sm divide-y divide-gray-700 text-gray-300">
+                                <!-- Rândurile se generează din JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Formular Adăugare/Editare (Ocupă 1 coloană) - Vizibil doar pentru Editor -->
+                <div id="form-container" class="bg-gray-800 rounded-2xl border border-gray-700 p-6 shadow-xl h-fit hidden">
+                    <h2 id="form-title" class="text-lg font-semibold text-white mb-4"><i class="fa-solid fa-plus-circle text-green-500 mr-1.5"></i> Adaugă Element Nou</h2>
+                    <form id="media-form" onsubmit="saveElement(event)" class="space-y-4">
+                        <input type="hidden" id="edit-id">
+                        
+                        <div>
+                            <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Cod Identificare</label>
+                            <input type="text" id="form-cod" required class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label id="lbl-titlu" class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Titlu Film</label>
+                            <input type="text" id="form-titlu" required class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
+                        </div>
+                        <div id="form-field-autor" class="hidden">
+                            <label id="lbl-autor" class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Artist / Autor</label>
+                            <input type="text" id="form-autor" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label id="lbl-detalii" class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Gen / Format</label>
+                            <input type="text" id="form-detalii" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
+                        </div>
+                        <!-- Câmp dedicat pentru link-ul IMDB (apare doar la filme/seriale) -->
+                        <div id="form-field-imdb">
+                            <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Link IMDB</label>
+                            <input type="url" id="form-imdb" placeholder="https://www.imdb.com/title/..." class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
+                        </div>
+
+                        <div class="pt-2 flex gap-2">
+                            <button type="submit" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded-lg text-sm transition shadow-md shadow-green-900/20">
+                                Salvează
+                            </button>
+                            <button type="button" onclick="resetForm()" class="px-3 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg text-sm transition">
+                                Anulează
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- LOGICĂ OPERAȚIONALĂ JAVASCRIPT -->
+    <script>
+        // Configurații Securitate
+        const PASS_VIEW = "brasov";
+        const PASS_EDIT = "timisoara$KY";
+        let currentRole = null; // 'view' sau 'edit'
+        
+        // Starea aplicației
+        let currentCategory = 'filme'; // 'filme', 'muzica', 'carti'
+        let database = { filme: [], muzica: [], carti: [] };
+
+        // Simularea unei baze de date persistente în cloud prin localStorage pentru testare imediată
+        if (!localStorage.getItem('idbdc_media_db')) {
+            localStorage.setItem('idbdc_media_db', JSON.stringify({
+                filme: [
+                    { cod: "F001", titlu: "The Shawshank Redemption", detalii: "Drama", imdb: "https://www.imdb.com/title/tt0111161/" },
+                    { cod: "F002", titlu: "Inception", detalii: "Sci-Fi", imdb: "" }
+                ],
+                muzica: [
+                    { cod: "M001", titlu: "Bohemian Rhapsody", autor: "Queen", detalii: "Rock / MP3" }
+                ],
+                carti: [
+                    { cod: "C001", titlu: "Tata bogat, tata sarac", autor: "Robert Kiyosaki", detalii: "Finante / PDF" }
+                ]
+            }));
         }
-        
-        showLoading(false);
-        switchCategory('carti'); 
-    }
+        database = JSON.parse(localStorage.getItem('idbdc_media_db'));
 
-    async function saveDataToCloud() {
-        if(currentMode !== "WRITE") return;
-        showLoading(true, "Se salvează modificările în seiful privat...");
-        const url = `https://api.github.com/repos/${CONFIG.gitUser}/${CONFIG.gitRepo}/contents/${CONFIG.gitFile}`;
-        
-        let stringData = JSON.stringify(db, null, 2);
-        let base64Content = btoa(unescape(encodeURIComponent(stringData)));
-        
-        let bodyObj = {
-            message: "Actualizare baza date media - IDBDC",
-            content: base64Content,
-            sha: shaFile
-        };
-
-        try {
-            let response = await fetch(url, {
-                method: "PUT",
-                headers: { "Authorization": `token ${CONFIG.gitToken}`, "Content-Type": "application/json" },
-                body: JSON.stringify(bodyObj)
-            });
+        function handleLogin() {
+            const pass = document.getElementById('password-input').value;
+            const errorEl = document.getElementById('login-error');
             
-            if (response.ok) {
-                let resData = await response.json();
-                shaFile = resData.content.sha;
+            if (pass === PASS_VIEW) {
+                currentRole = 'view';
+            } else if (pass === PASS_EDIT) {
+                currentRole = 'edit';
             } else {
-                alert("Eroare la salvarea în cloud.");
+                errorEl.classList.remove('hidden');
+                return;
             }
-        } catch (e) {
-            alert("Eroare tehnică la conexiune.");
-        }
-        showLoading(false);
-    }
 
-    function switchCategory(cat) {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-        
-        document.getElementById(`btn-tab-${cat}`).classList.add('active');
-        document.getElementById(`sec-${cat}`).classList.add('active');
-        
-        document.body.className = `bg-${cat}`;
-        
-        if(currentMode === "WRITE") {
-            setMode(cat, 'insert');
-        } else {
-            setMode(cat, 'view');
-        }
-        
-        if(cat==='carti') renderCarti(); 
-        if(cat==='filme') renderFilme(); 
-        if(cat==='muzica') renderMuzica();
-    }
+            errorEl.classList.add('hidden');
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('app-screen').classList.remove('hidden');
+            
+            // Ajustări interfață în funcție de rol
+            const badge = document.getElementById('role-badge');
+            const formContainer = document.getElementById('form-container');
+            
+            if (currentRole === 'edit') {
+                badge.textContent = "Editor / Administrator";
+                badge.className = "px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-900 text-green-300";
+                formContainer.classList.remove('hidden');
+            } else {
+                badge.textContent = "Doar Vizualizare";
+                badge.className = "px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-900 text-blue-300";
+                formContainer.classList.add('hidden');
+            }
 
-    function renderCarti() {
-        const body = document.getElementById('t-carti-body'); body.innerHTML = '';
-        const fFormat = document.getElementById('s-carte-format').value;
-        const fA = document.getElementById('s-carte-autor').value.toLowerCase();
-        const fT = document.getElementById('s-carte-titlu').value.toLowerCase();
-        
-        if(!db.carti) db.carti = [];
-        db.carti.filter(b => {
-            const matchesFormat = (fFormat === 'Toate' || b.format === fFormat);
-            return matchesFormat && b.autor.toLowerCase().includes(fA) && b.titlu.toLowerCase().includes(fT);
-        }).forEach(b => {
-            let tr = document.createElement('tr'); if(b.id === selectedIds.carti) tr.className = 'selected-row';
-            tr.innerHTML = `<td>${b.autor}</td><td>${b.titlu}</td>`;
-            tr.onclick = () => selectItem('carti', b.id); body.appendChild(tr);
-        });
-    }
-
-    function renderFilme() {
-        const body = document.getElementById('t-filme-body'); body.innerHTML = '';
-        const fTip = document.getElementById('s-film-tip').value;
-        const fStatus = document.getElementById('s-film-status').value; 
-        const fActor = document.getElementById('s-film-actor').value.toLowerCase();
-        const fTitlu = document.getElementById('s-film-titlu').value.toLowerCase();
-        
-        if(!db.filme) db.filme = [];
-        db.filme.filter(f => {
-            const matchesTip = (fTip === 'Toate' || f.tip === fTip);
-            const matchesStatus = (fStatus === 'Toate' || f.status === fStatus); 
-            const matchesActor = f.distributie.toLowerCase().includes(fActor);
-            const matchesTitlu = f.titluRo.toLowerCase().includes(fTitlu) || f.titluOrig.toLowerCase().includes(fTitlu);
-            return matchesTip && matchesStatus && matchesActor && matchesTitlu;
-        }).forEach(f => {
-            let tr = document.createElement('tr'); if(f.id === selectedIds.filme) tr.className = 'selected-row';
-            const titluAfișat = f.titluRo ? `<strong>${f.titluOrig}</strong> <span style="color:#7f8c8d; font-size:0.85rem;">(${f.titluRo})</span>` : `<strong>${f.titluOrig}</strong>`;
-            tr.innerHTML = `<td>${titluAfișat}</td>`;
-            tr.onclick = () => selectItem('filme', f.id); body.appendChild(tr);
-        });
-    }
-
-    function renderMuzica() {
-        const body = document.getElementById('t-muzica-body'); body.innerHTML = '';
-        const fTip = document.getElementById('s-muzica-tip').value;
-        const fA = document.getElementById('s-muzica-artist').value.toLowerCase();
-        const fT = document.getElementById('s-muzica-titlu').value.toLowerCase();
-        
-        if(!db.muzica) db.muzica = [];
-        db.muzica.filter(m => {
-            const matchesTip = (fTip === 'Toate' || m.tip === fTip);
-            return matchesTip && m.artist.toLowerCase().includes(fA) && m.titlu.toLowerCase().includes(fT);
-        }).forEach(m => {
-            let tr = document.createElement('tr'); if(m.id === selectedIds.muzica) tr.className = 'selected-row';
-            tr.innerHTML = `<td>${m.artist}</td><td>${m.titlu}</td>`;
-            tr.onclick = () => selectItem('muzica', m.id); body.appendChild(tr);
-        });
-    }
-
-    function resetSearchFilters(cat) {
-        if(cat === 'carti') {
-            document.getElementById('s-carte-format').selectedIndex = 0;
-            document.getElementById('s-carte-autor').value = '';
-            document.getElementById('s-carte-titlu').value = '';
-            renderCarti();
-        } else if(cat === 'filme') {
-            document.getElementById('s-film-tip').selectedIndex = 0;
-            document.getElementById('s-film-status').selectedIndex = 0;
-            document.getElementById('s-film-actor').value = '';
-            document.getElementById('s-film-titlu').value = '';
-            renderFilme();
-        } else if(cat === 'muzica') {
-            document.getElementById('s-muzica-tip').selectedIndex = 0;
-            document.getElementById('s-muzica-artist').value = '';
-            document.getElementById('s-muzica-titlu').value = '';
-            renderMuzica();
-        }
-    }
-
-    function selectItem(cat, id) {
-        selectedIds[cat] = id;
-        let item = db[cat].find(i => i.id === id);
-        setMode(cat, 'edit');
-        
-        if(cat === 'carti') {
-            document.getElementById('c-format').value = item.format; document.getElementById('c-gen').value = item.gen;
-            document.getElementById('c-autor').value = item.autor; document.getElementById('c-titlu').value = item.titlu;
-            document.getElementById('c-an').value = item.an; document.getElementById('c-pagini').value = item.pagini;
-            document.getElementById('c-editura').value = item.editura; document.getElementById('c-colectia').value = item.colectia;
-            document.getElementById('c-seria').value = item.seria; document.getElementById('c-coperta').value = item.coperta;
-        } else if (cat === 'filme') {
-            document.getElementById('f-tip').value = item.tip; 
-            document.getElementById('f-status').value = item.status || "De vizionat"; 
-            document.getElementById('f-gen').value = item.gen;
-            document.getElementById('f-titlu-orig').value = item.titluOrig; document.getElementById('f-titlu-ro').value = item.titluRo; 
-            document.getElementById('f-regizor').value = item.regizor; document.getElementById('f-an').value = item.an; 
-            document.getElementById('f-durata').value = item.durata; document.getElementById('f-distributie').value = item.distributie; 
-            document.getElementById('f-coperta').value = item.coperta;
-        } else if (cat === 'muzica') {
-            document.getElementById('m-tip').value = item.tip; document.getElementById('m-gen').value = item.gen;
-            document.getElementById('m-artist').value = item.artist; document.getElementById('m-titlu').value = item.titlu;
-            document.getElementById('m-an').value = item.an; document.getElementById('m-soundtrack').value = item.soundtrack;
-            document.getElementById('m-extras').value = item.extras; document.getElementById('m-coperta').value = item.coperta;
-        }
-        previewImg(cat);
-        if(cat==='carti') renderCarti(); if(cat==='filme') renderFilme(); if(cat==='muzica') renderMuzica();
-    }
-
-    function previewImg(cat) {
-        let pfx = cat === 'carti' ? 'c' : (cat === 'filme' ? 'f' : 'm');
-        let url = document.getElementById(`${pfx}-coperta`).value.trim();
-        let box = document.getElementById(`p-${cat}-img`);
-        if(url) { box.innerHTML = `<img src="${url}" onerror="this.parentNode.innerHTML='<div class=\'no-image-text\'>Link Invalid</div>'">`; }
-        else { box.innerHTML = `<div class="no-image-text">Fără imagine</div>`; }
-    }
-
-    function setMode(cat, mode) {
-        let h = document.getElementById(`h-${cat}-title`);
-        let b = document.getElementById(`b-${cat}`);
-        let delBtn = document.getElementById(`del-${cat}`);
-        
-        if(currentMode === "READ") {
-            h.innerText = "Vizualizare caracteristici"; 
-            b.innerText = "Informații"; 
-            b.style.background = "#7f8c8d";
-            return;
+            switchCategory(currentCategory);
         }
 
-        if(mode === 'insert') {
-            selectedIds[cat] = null; clearFields(cat);
-            h.innerText = "Inserare caracteristici element nou"; 
-            b.innerText = "Element Nou"; 
-            b.style.background = "#e74c3c"; 
-            if(delBtn) delBtn.style.setProperty('display', 'none', 'important');
-            if(cat==='carti') renderCarti(); if(cat==='filme') renderFilme(); if(cat==='muzica') renderMuzica();
-        } else {
-            h.innerText = "Actualizare caracteristici element"; 
-            b.innerText = "Element Selectat"; 
-            b.style.background = "#3498db"; 
-            if(delBtn) delBtn.style.setProperty('display', 'inline-block', 'important');
-        }
-    }
-
-    function clearFields(cat) {
-        let pfx = cat === 'carti' ? 'c' : (cat === 'filme' ? 'f' : 'm');
-        document.querySelectorAll(`[id^="${pfx}-"]`).forEach(el => { 
-            if(el.tagName === "INPUT") el.value = ''; 
-            if(el.tagName === "SELECT" && el.id !== 'f-tip' && el.id !== 'f-status' && el.id !== 'c-format' && el.id !== 'm-tip') el.selectedIndex = 0;
-        });
-        previewImg(cat);
-    }
-
-    async function saveItem(cat) {
-        if(currentMode !== "WRITE") return;
-        let id = selectedIds[cat];
-        
-        if(cat === 'carti' && (!document.getElementById('c-autor').value || !document.getElementById('c-titlu').value)) return alert("Autor și Titlu obligatorii!");
-        if(cat === 'filme' && (!document.getElementById('f-titlu-orig').value || !document.getElementById('f-distributie').value)) return alert("Titlu Original și Distribuție obligatorii!");
-        if(cat === 'muzica' && (!document.getElementById('m-artist').value || !document.getElementById('m-titlu').value)) return alert("Artist și Titlu obligatorii!");
-
-        let data = {};
-        let timestampId = id || Date.now(); 
-        
-        if(cat === 'carti') {
-            data = { id: timestampId, format: document.getElementById('c-format').value, gen: document.getElementById('c-gen').value, autor: document.getElementById('c-autor').value, titlu: document.getElementById('c-titlu').value, an: document.getElementById('c-an').value, pagini: document.getElementById('c-pagini').value, editura: document.getElementById('c-editura').value, colectia: document.getElementById('c-colectia').value, seria: document.getElementById('c-seria').value, coperta: document.getElementById('c-coperta').value };
-        } else if(cat === 'filme') {
-            data = { id: timestampId, tip: document.getElementById('f-tip').value, status: document.getElementById('f-status').value, gen: document.getElementById('f-gen').value, titluOrig: document.getElementById('f-titlu-orig').value, titluRo: document.getElementById('f-titlu-ro').value, regizor: document.getElementById('f-regizor').value, an: document.getElementById('f-an').value, durata: document.getElementById('f-durata').value, distributie: document.getElementById('f-distributie').value, coperta: document.getElementById('f-coperta').value };
-        } else if(cat === 'muzica') {
-            data = { id: timestampId, tip: document.getElementById('m-tip').value, gen: document.getElementById('m-gen').value, artist: document.getElementById('m-artist').value, titlu: document.getElementById('m-titlu').value, an: document.getElementById('m-an').value, soundtrack: document.getElementById('m-soundtrack').value, extras: document.getElementById('m-extras').value, coperta: document.getElementById('m-coperta').value };
+        function logout() {
+            currentRole = null;
+            document.getElementById('password-input').value = '';
+            document.getElementById('app-screen').classList.add('hidden');
+            document.getElementById('login-screen').classList.remove('hidden');
         }
 
-        if(id) { 
-            let idx = db[cat].findIndex(i => i.id === id); db[cat][idx] = data; 
-        } else { 
-            db[cat].push(data); selectedIds[cat] = data.id; 
+        function switchCategory(cat) {
+            currentCategory = cat;
+            
+            // Actualizare stil butoane tab
+            ['filme', 'muzica', 'carti'].forEach(c => {
+                const btn = document.getElementById(`btn-${c}`);
+                if (c === cat) {
+                    btn.className = "px-4 py-1.5 rounded-lg text-sm font-medium transition whitespace-nowrap bg-blue-600 text-white";
+                } else {
+                    btn.className = "px-4 py-1.5 rounded-lg text-sm font-medium transition whitespace-nowrap bg-gray-700 text-gray-300 hover:bg-gray-600";
+                }
+            });
+
+            // Ajustări dinamice etichete formular și tabel în funcție de specificul categoriei
+            const titleEl = document.getElementById('table-title');
+            const thArtTit = document.getElementById('th-art-tit');
+            const thDetalii = document.getElementById('th-detalii');
+            const fieldAutor = document.getElementById('form-field-autor');
+            const fieldImdb = document.getElementById('form-field-imdb');
+            const lblTitlu = document.getElementById('lbl-titlu');
+            const lblDetalii = document.getElementById('lbl-detalii');
+
+            if (cat === 'filme') {
+                titleEl.textContent = "Listă Filme & Seriale";
+                thArtTit.textContent = "Titlu Film";
+                thDetalii.textContent = "Gen / Categorie";
+                fieldAutor.classList.add('hidden');
+                fieldImdb.classList.remove('hidden'); // Arată caseta IMDB
+                lblTitlu.textContent = "Titlu Film";
+                lblDetalii.textContent = "Gen / Format";
+            } else if (cat === 'muzica') {
+                titleEl.textContent = "Catalog Muzică (MP3)";
+                thArtTit.textContent = "Artist / Melodie";
+                thDetalii.textContent = "Gen / Album";
+                fieldAutor.classList.remove('hidden');
+                fieldImdb.classList.add('hidden'); // Ascunde IMDB
+                lblTitlu.textContent = "Titlu Melodie";
+                lblAutor.textContent = "Artist / Trupă";
+                lblDetalii.textContent = "Gen / Detalii fișier";
+            } else if (cat === 'carti') {
+                titleEl.textContent = "Arhivă Cărți & Documente";
+                thArtTit.textContent = "Autor / Titlu Carte";
+                thDetalii.textContent = "Domeniu / Extensie";
+                fieldAutor.classList.remove('hidden');
+                fieldImdb.classList.add('hidden'); // Ascunde IMDB
+                lblTitlu.textContent = "Titlu Document / Carte";
+                lblAutor.textContent = "Autor / Emitent";
+                lblDetalii.textContent = "Domeniu / Tip Fișier (PDF/Word)";
+            }
+
+            resetForm();
+            renderTable();
         }
 
-        await saveDataToCloud();
-        if(cat==='carti') renderCarti(); if(cat==='filme') renderFilme(); if(cat==='muzica') renderMuzica();
-        selectItem(cat, selectedIds[cat]);
-    }
+        function renderTable() {
+            const tbody = document.getElementById('data-tbody');
+            const searchVal = document.getElementById('search-input').value.toLowerCase();
+            tbody.innerHTML = '';
 
-    async function deleteItem(cat) {
-        if(currentMode !== "WRITE") return;
-        if(confirm("Sigur doriți să ștergeți această înregistrare din cloud?")) {
-            db[cat] = db[cat].filter(i => i.id !== selectedIds[cat]);
-            await saveDataToCloud();
-            setMode(cat, 'insert');
+            const list = database[currentCategory] || [];
+            let filteredCount = 0;
+
+            list.forEach((item, index) => {
+                // Filtru căutare globală
+                const matchCod = item.cod.toLowerCase().includes(searchVal);
+                const matchTitlu = item.titlu.toLowerCase().includes(searchVal);
+                const matchDetalii = item.detalii ? item.detalii.toLowerCase().includes(searchVal) : false;
+                const matchAutor = item.autor ? item.autor.toLowerCase().includes(searchVal) : false;
+
+                if (!searchVal || matchCod || matchTitlu || matchDetalii || matchAutor) {
+                    filteredCount++;
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-gray-750/50 transition border-b border-gray-700/50";
+
+                    // Coloana Cod
+                    const tdCod = document.createElement('td');
+                    tdCod.className = "p-3 font-mono text-xs text-blue-400 font-medium";
+                    tdCod.textContent = item.cod;
+                    tr.appendChild(tdCod);
+
+                    // Coloana Titlu / Autor
+                    const tdTitlu = document.createElement('td');
+                    tdTitlu.className = "p-3";
+                    if (currentCategory === 'filme') {
+                        tdTitlu.innerHTML = `<div class="font-semibold text-white">${item.titlu}</div>`;
+                    } else {
+                        tdTitlu.innerHTML = `<div class="font-semibold text-white">${item.titlu}</div><div class="text-xs text-gray-400">${item.autor || ''}</div>`;
+                    }
+                    tr.appendChild(tdTitlu);
+
+                    // Coloana Detalii + Butonul IMDB (dacă e film)
+                    const tdDetalii = document.createElement('td');
+                    tdDetalii.className = "p-3 text-gray-400 text-xs";
+                    
+                    if (currentCategory === 'filme') {
+                        const hasImdb = item.imdb && item.imdb.trim() !== "";
+                        const imdbBtnClass = hasImdb ? 'imdb-btn-active' : 'imdb-btn-inactive';
+                        const imdbAttr = hasImdb ? `href="${item.imdb}" target="_blank" title="Deschide pe IMDB"` : `onclick="alert('Acest film nu are încă un link IMDB configurat.')" title="Fără link IMDB"`;
+                        
+                        tdDetalii.innerHTML = `
+                            <div class="flex items-center gap-3">
+                                <span>${item.detalii || ''}</span>
+                                <a ${imdbAttr} class="${imdbBtnClass} px-2 py-0.5 rounded text-[10px] font-extrabold tracking-tight flex items-center gap-1 transition shadow-sm cursor-pointer">
+                                    <i class="fa-brands fa-imdb text-sm"></i> IMDB
+                                </a>
+                            </div>
+                        `;
+                    } else {
+                        tdDetalii.textContent = item.detalii || '';
+                    }
+                    tr.appendChild(tdDetalii);
+
+                    // Coloana Acțiuni (Editare/Ștergere securizată)
+                    const tdActiuni = document.createElement('td');
+                    tdActiuni.className = "p-3 text-center whitespace-nowrap space-x-2";
+                    
+                    if (currentRole === 'edit') {
+                        tdActiuni.innerHTML = `
+                            <button onclick="editElement('${index}')" class="p-1.5 text-blue-400 hover:text-blue-300 hover:bg-gray-700 rounded-lg transition" title="Editează">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button onclick="deleteElement('${index}')" class="p-1.5 text-red-400 hover:text-red-300 hover:bg-gray-700 rounded-lg transition" title="Șterge">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        `;
+                    } else {
+                        tdActiuni.innerHTML = `<span class="text-xs text-gray-500 italic"><i class="fa-solid fa-lock mr-1"></i>Protejat</span>`;
+                    }
+                    tr.appendChild(tdActiuni);
+
+                    tbody.appendChild(tr);
+                }
+            });
+
+            document.getElementById('item-count').textContent = `${filteredCount} elemente`;
         }
-    }
-</script>
+
+        function saveElement(event) {
+            event.preventDefault();
+            if (currentRole !== 'edit') return;
+
+            const id = document.getElementById('edit-id').value;
+            const cod = document.getElementById('form-cod').value.trim();
+            const titlu = document.getElementById('form-titlu').value.trim();
+            const detalii = document.getElementById('form-detalii').value.trim();
+            
+            let item = { cod, titlu, detalii };
+
+            if (currentCategory === 'filme') {
+                item.imdb = document.getElementById('form-imdb').value.trim();
+            } else {
+                item.autor = document.getElementById('form-autor').value.trim();
+            }
+
+            if (id === "") {
+                // Adăugare element nou
+                // Verificare sumară dublură cod
+                if (database[currentCategory].some(x => x.cod.toLowerCase() === cod.toLowerCase())) {
+                    alert("Atenție! Acest cod de identificare există deja în sistem.");
+                    return;
+                }
+                database[currentCategory].push(item);
+            } else {
+                // Actualizare element existent
+                database[currentCategory][parseInt(id)] = item;
+            }
+
+            localStorage.setItem('idbdc_media_db', JSON.stringify(database));
+            resetForm();
+            renderTable();
+        }
+
+        function editElement(index) {
+            if (currentRole !== 'edit') return;
+            const idx = parseInt(index);
+            const item = database[currentCategory][idx];
+
+            document.getElementById('edit-id').value = idx;
+            document.getElementById('form-cod').value = item.cod;
+            document.getElementById('form-titlu').value = item.titlu;
+            document.getElementById('form-detalii').value = item.detalii || '';
+
+            if (currentCategory === 'filme') {
+                document.getElementById('form-imdb').value = item.imdb || '';
+            } else {
+                document.getElementById('form-autor').value = item.autor || '';
+            }
+
+            document.getElementById('form-title').innerHTML = `<i class="fa-solid fa-pen-to-square text-blue-500 mr-1.5"></i> Editează Elementul`;
+        }
+
+        function deleteElement(index) {
+            if (currentRole !== 'edit') return;
+            if (confirm("Sigur doriți să ștergeți definitiv acest element din baza de date?")) {
+                database[currentCategory].splice(parseInt(index), 1);
+                localStorage.setItem('idbdc_media_db', JSON.stringify(database));
+                renderTable();
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('media-form').reset();
+            document.getElementById('edit-id').value = "";
+            document.getElementById('form-title').innerHTML = `<i class="fa-solid fa-plus-circle text-green-500 mr-1.5"></i> Adaugă Element Nou`;
+        }
+    </script>
 </body>
 </html>
