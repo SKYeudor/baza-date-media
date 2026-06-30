@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IDBDC - Biblioteca Media Personală</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f4f6f9; margin: 0; padding: 20px; color: #333; transition: background-color 0.3s ease; }
+        
+        /* Fundaluri specifice pe secțiuni */
+        body.bg-carti { background-color: #fcf8f2; } 
+        body.bg-filme { background-color: #f0f3f5; } 
+        body.bg-muzica { background-color: #f5f0f6; } 
+
+        .container { max-width: 1250px; margin: 0 auto; display: none; }
+        h1 { text-align: center; color: #2c3e50; margin-bottom: 20px; font-size: 1.8rem; letter-spacing: 1px; }
+        
+        /* Ecran Login */
+        #login-screen { max-width: 400px; margin: 100px auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; }
+        #login-screen h2 { color: #2c3e50; margin-top: 0; margin-bottom: 20px; font-size: 1.4rem; }
+        #login-screen input { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; text-align: center; }
+        #login-screen button { width: 100%; padding: 12px; background: #2c3e50; color: white; border: none; border-radius: 4px; font-weight: bold; font-size: 1rem; cursor: pointer; }
+        #login-error { color: #e74c3c; font-weight: bold; margin-top: 10px; display: none; }
+
+        /* Indicator Mod și Bară Status */
+        .status-bar { background: #34495e; color: white; padding: 10px 20px; border-radius: 6px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .status-right { display: flex; align-items: center; gap: 15px; }
+        .badge-mode { padding: 4px 10px; border-radius: 4px; font-weight: bold; }
+        .mode-read { background: #f1c40f; color: #2c3e50; }
+        .mode-write { background: #2ecc71; color: white; }
+        .btn-logout { background: #e74c3c; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        .btn-logout:hover { background: #c0392b; }
+
+        /* Navigare Tab-uri */
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 3px solid #bdc3c7; padding-bottom: 5px; }
+        .tab-btn { padding: 12px 25px; font-size: 1.1rem; font-weight: bold; background: #e0e0e0; border: none; border-radius: 6px 6px 0 0; cursor: pointer; transition: all 0.2s; color: #555; }
+        
+        .tab-btn#btn-tab-carti.active { background: #8e6e53; color: white; } 
+        .tab-btn#btn-tab-filme.active { background: #2c3e50; color: white; } 
+        .tab-btn#btn-tab-muzica.active { background: #6c5ce7; color: white; } 
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Formular Căutare - Structură extinsă */
+        .search-container-block { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .search-inputs-line { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 12px; }
+        .search-inputs-line.four-cols { grid-template-columns: 1fr 1fr 1.2fr 1.2fr; }
+        
+        .search-group { display: flex; flex-direction: column; }
+        .search-group label { font-size: 0.8rem; font-weight: 600; margin-bottom: 4px; color: #7f8c8d; }
+        .search-group input, .search-group select { padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.95rem; height: 38px; }
+
+        /* Linia a doua din căutare: Butoane control căutare */
+        .search-actions-line { display: flex; gap: 10px; align-items: center; border-top: 1px dotted #ecf0f1; padding-top: 10px; }
+        
+        /* Structură pe 2 coloane */
+        .main-layout { display: grid; grid-template-columns: 1fr 1.4fr; gap: 20px; }
+        @media (max-width: 950px) { .search-inputs-line, .search-inputs-line.four-cols { grid-template-columns: 1fr; } .main-layout { grid-template-columns: 1fr; } }
+
+        /* Coloana Stânga: Tabel Rezultate */
+        .table-section { background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding: 15px; align-self: start; }
+        .table-section h3 { margin-top: 0; color: #34495e; border-bottom: 2px solid #ecf0f1; padding-bottom: 8px; }
+        .table-wrapper { max-height: 540px; overflow-y: auto; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th, td { padding: 10px; border-bottom: 1px solid #ddd; cursor: pointer; font-size: 0.95rem; }
+        th { background-color: #34495e; color: white; position: sticky; top: 0; z-index: 10; }
+        tr.selected-row { background-color: #d5dbdb !important; font-weight: bold; }
+        tr:hover { background-color: #f1f2f6; }
+
+        /* Coloana Dreapta: Zona Detalii / CRUD */
+        .crud-section { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .crud-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ecf0f1; padding-bottom: 10px; margin-bottom: 15px; }
+        .crud-header h3 { margin: 0; color: #34495e; font-size: 1.15rem; }
+        .badge { font-size: 0.8rem; padding: 4px 10px; background: #7f8c8d; color: white; border-radius: 12px; font-weight: bold; }
+        
+        .crud-content { display: flex; gap: 20px; }
+        @media (max-width: 650px) { .crud-content { flex-direction: column-reverse; } }
+        
+        .fields-grid { flex: 1.5; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .full-width { grid-column: span 2; }
+        
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { font-size: 0.8rem; font-weight: 600; margin-bottom: 3px; color: #555; }
+        .form-group input, .form-group select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem; background: #fff; }
+
+        /* Zone Imagini */
+        .image-card-container { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: start; min-width: 180px; }
+        .image-card { background-color: #eaeded; border: 2px dashed #bdc3c7; border-radius: 6px; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; width: 100%; }
+        .image-card img { width: 100%; height: 100%; object-fit: cover; }
+        .no-image-text { color: #7f8c8d; font-size: 0.8rem; text-align: center; padding: 10px; font-weight: 600; }
+
+        .box-carte { height: 270px; max-width: 180px; }
+        .box-film { height: 268px; max-width: 190px; }
+        .box-muzica { height: 190px; max-width: 190px; }
+
+        /* Butoane */
+        .btn-container { margin-top: 15px; display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid #ecf0f1; padding-top: 15px; }
+        button.action { padding: 8px 18px; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.9rem; }
+        
+        .btn-launch-search { background-color: #2c3e50; color: white; }
+        .btn-reset-search { background-color: #7f8c8d; color: white; }
+        .btn-add-mode { background-color: #3498db; color: white; height: 34px; padding: 0 15px; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; margin-left: auto; }
+        
+        .btn-save { background-color: #2ecc71; color: white; }
+        .btn-delete { background-color: #e74c3c; color: white; }
+        .btn-clear { background-color: #95a5a6; color: white; }
+        
+        /* Stare inactivă (Dezactivat) pentru modul Vizualizare */
+        button.action:disabled, .btn-add-mode:disabled { background-color: #d5dbdb !important; color: #7f8c8d !important; cursor: not-allowed !important; opacity: 0.7; }
+        
+        /* Control dinamic vizibilitate inserare */
+        .write-only-block { display: none; }
+        
+        /* Loading Overlay */
+        #loading-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(255,255,255,0.8); z-index:9999; justify-content:center; align-items:center; flex-direction:column; font-weight:bold; color:#2c3e50; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #2c3e50; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 10px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<div id="login-screen">
+    <h2>Acces bază de date media</h2>
+    <input type="password" id="pass-input" placeholder="Introduceți parola de acces..." onkeydown="if(event.key==='Enter') verifyLogin()">
+    <button onclick="verifyLogin()">Autentificare</button>
+    <div id="login-error">Parolă incorectă! Încercați din nou.</div>
+</div>
+
+<div id="loading-overlay"><div class="spinner"></div><span id="loading-text">Se sincronizează cu cloud...</span></div>
+
+<div class="container" id="app-container">
+    <div class="status-bar">
+        <div><strong>Utilizator:</strong> SKYeudor</div>
+        <div class="status-right">
+            <div id="mode-indicator"></div>
+            <button class="btn-logout" onclick="logoutApplication()">Ieșire</button>
+        </div>
+    </div>
+    
+    <h1>Biblioteca Media Personală</h1>
+
+    <div class="tabs">
+        <button class="tab-btn active" id="btn-tab-carti" onclick="switchCategory('carti')">CĂRȚI</button>
+        <button class="tab-btn" id="btn-tab-filme" onclick="switchCategory('filme')">FILME & SERIALE</button>
+        <button class="tab-btn" id="btn-tab-muzica" onclick="switchCategory('muzica')">MUZICĂ</button>
+    </div>
+
+    <div id="sec-carti" class="tab-content active">
+        <div class="search-container-block">
+            <div class="search-inputs-line">
+                <div class="search-group">
+                    <label>Tip Format</label>
+                    <select id="s-carte-format"><option value="Toate">Toate</option><option value="Format Tipărit">Tipărit</option><option value="Format Electronic">Electronic</option></select>
+                </div>
+                <div class="search-group"><label>Caută după Autor</label><input type="text" id="s-carte-autor" placeholder="Scrie autor..."></div>
+                <div class="search-group"><label>Caută după Titlu</label><input type="text" id="s-carte-titlu" placeholder="Scrie titlu..."></div>
+            </div>
+            <div class="search-actions-line">
+                <button class="action btn-launch-search" onclick="renderCarti()">Lansează Căutarea</button>
+                <button class="action btn-reset-search" onclick="resetSearchFilters('carti')">Resetează Criterii</button>
+                <button class="btn-add-mode write-only-block" id="add-btn-carti" onclick="setMode('carti', 'insert')">+ Inserare element nou</button>
+            </div>
+        </div>
+        
+        <div class="main-layout">
+            <div class="table-section">
+                <h3>Lista Cărți</h3>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>Autor</th><th>Titlu</th></tr></thead>
+                        <tbody id="t-carti-body"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="crud-section">
+                <div class="crud-header"><h3 id="h-carti-title">Vizualizare caracteristici</h3><span class="badge" id="b-carti">Informații</span></div>
+                <div class="crud-content">
+                    <div class="fields-grid">
+                        <div class="form-group"><label>Tip Format</label><select id="c-format"><option value="Format Tipărit">Format Tipărit</option><option value="Format Electronic">Format Electronic</option></select></div>
+                        <div class="form-group"><label>Gen literar</label><input type="text" id="c-gen"></div>
+                        <div class="form-group full-width"><label>Autor *</label><input type="text" id="c-autor"></div>
+                        <div class="form-group full-width"><label>Titlu *</label><input type="text" id="c-titlu"></div>
+                        <div class="form-group"><label>An apariție</label><input type="number" id="c-an"></div>
+                        <div class="form-group"><label>Nr. pagini</label><input type="number" id="c-pagini"></div>
+                        <div class="form-group"><label>Editura</label><input type="text" id="c-editura"></div>
+                        <div class="form-group"><label>Colecția</label><input type="text" id="c-colectia"></div>
+                        <div class="form-group full-width"><label>Seria</label><input type="text" id="c-seria"></div>
+                        <div class="form-group full-width"><label>URL Copertă Imagine</label><input type="text" id="c-coperta" oninput="previewImg('carti')"></div>
+                    </div>
+                    <div class="image-card-container"><label style="font-size:0.8rem; font-weight:600; margin-bottom:4px;">Copertă</label><div class="image-card box-carte" id="p-carti-img"><div class="no-image-text">Fără imagine</div></div></div>
+                </div>
+                
+                <div class="btn-container">
+                    <button class="action btn-delete crud-btn" id="del-carti" onclick="deleteItem('carti')">Șterge</button>
+                    <button class="action btn-clear crud-btn" id="clear-carti" onclick="clearFields('carti')">Resetează</button>
+                    <button class="action btn-save crud-btn" id="save-carti" onclick="saveItem('carti')">Salvează</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="sec-filme" class="tab-content">
+        <div class="search-container-block">
+            <div class="search-inputs-line four-cols">
+                <div class="search-group">
+                    <label>Tip Conținut</label>
+                    <select id="s-film-tip"><option value="Toate">Toate</option><option value="Film">Film</option><option value="Serial">Serial</option></select>
+                </div>
+                <div class="search-group">
+                    <label>Status vizionare</label>
+                    <select id="s-film-status"><option value="Toate">Toate</option><option value="Vizionat">Vizionat</option><option value="De vizionat">De vizionat</option><option value="Rezervă">Rezervă</option></select>
+                </div>
+                <div class="search-group"><label>Caută după Actor</label><input type="text" id="s-film-actor" placeholder="Scrie actor..."></div>
+                <div class="search-group"><label>Caută după Titlu</label><input type="text" id="s-film-titlu" placeholder="Scrie titlu..."></div>
+            </div>
+            <div class="search-actions-line">
+                <button class="action btn-launch-search" onclick="renderFilme()">Lansează Căutarea</button>
+                <button class="action btn-reset-search" onclick="resetSearchFilters('filme')">Resetează Criterii</button>
+                <button class="btn-add-mode write-only-block" id="add-btn-filme" onclick="setMode('filme', 'insert')">+ Inserare element nou</button>
+            </div>
+        </div>
+        
+        <div class="main-layout">
+            <div class="table-section">
+                <h3>Lista Filme & Seriale</h3>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>Titlu (Original / Română)</th></tr></thead>
+                        <tbody id="t-filme-body"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="crud-section">
+                <div class="crud-header"><h3 id="h-filme-title">Vizualizare caracteristici</h3><span class="badge" id="b-filme">Informații</span></div>
+                <div class="crud-content">
+                    <div class="fields-grid">
+                        <div class="form-group"><label>Tip Conținut</label><select id="f-tip"><option value="Film">Film</option><option value="Serial">Serial</option></select></div>
+                        <div class="form-group"><label>Status *</label><select id="f-status"><option value="De vizionat">De vizionat</option><option value="Vizionat">Vizionat</option><option value="Rezervă">Rezervă</option></select></div>
+                        <div class="form-group"><label>Gen film</label><input type="text" id="f-gen"></div>
+                        <div class="form-group"><label>An lansare</label><input type="number" id="f-an"></div>
+                        <div class="form-group full-width"><label>Titlu original *</label><input type="text" id="f-titlu-orig"></div>
+                        <div class="form-group full-width"><label>Titlu limba română</label><input type="text" id="f-titlu-ro"></div>
+                        <div class="form-group"><label>Regizor</label><input type="text" id="f-regizor"></div>
+                        <div class="form-group"><label>Durată (min/sezoane)</label><input type="text" id="f-durata"></div>
+                        <div class="form-group full-width"><label>În distribuție (Actori) *</label><input type="text" id="f-distributie"></div>
+                        <div class="form-group full-width"><label>URL Afiș Comercial</label><input type="text" id="f-coperta" oninput="previewImg('filme')"></div>
+                    </div>
+                    <div class="image-card-container"><label style="font-size:0.8rem; font-weight:600; margin-bottom:4px;">Afiș Cinema</label><div class="image-card box-film" id="p-filme-img"><div class="no-image-text">Fără afiș</div></div></div>
+                </div>
+                
+                <div class="btn-container">
+                    <button class="action btn-delete crud-btn" id="del-filme" onclick="deleteItem('filme')">Șterge</button>
+                    <button class="action btn-clear crud-btn" id="clear-filme" onclick="clearFields('filme')">Resetează</button>
+                    <button class="action btn-save crud-btn" id="save-filme" onclick="saveItem('filme')">Salvează</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="sec-muzica" class="tab-content">
+        <div class="search-container-block">
+            <div class="search-inputs-line">
+                <div class="search-group">
+                    <label>Tip Lansare</label>
+                    <select id="s-muzica-tip"><option value="Toate">Toate</option><option value="Album">Album</option><option value="Single">Single</option></select>
+                </div>
+                <div class="search-group"><label>Caută după Artist/Trupă</label><input type="text" id="s-muzica-artist" placeholder="Scrie artist..."></div>
+                <div class="search-group"><label>Caută după Titlu</label><input type="text" id="s-muzica-titlu" placeholder="Scrie titlu..."></div>
+            </div>
+            <div class="search-actions-line">
+                <button class="action btn-launch-search" onclick="renderMuzica()">Lansează Căutarea</button>
+                <button class="action btn-reset-search" onclick="resetSearchFilters('muzica')">Resetează Criterii</button>
+                <button class="btn-add-mode write-only-block" id="add-btn-muzica" onclick="setMode('muzica', 'insert')">+ Inserare element nou</button>
+            </div>
+        </div>
+        
+        <div class="main-layout">
+            <div class="table-section">
+                <h3>Lista Albume & Single-uri</h3>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>Artist / Trupă</th><th>Titlu</th></tr></thead>
+                        <tbody id="t-muzica-body"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="crud-section">
+                <div class="crud-header"><h3 id="h-muzica-title">Vizualizare caracteristici</h3><span class="badge" id="b-muzica">Informații</span></div>
+                <div class="crud-content">
+                    <div class="fields-grid">
+                        <div class="form-group"><label>Tip Lansare</label><select id="m-tip"><option value="Album">Album</option><option value="Single">Single</option></select></div>
+                        <div class="form-group"><label>Gen muzical</label><input type="text" id="m-gen"></div>
+                        <div class="form-group full-width"><label>Artist / Trupă *</label><input type="text" id="m-artist"></div>
+                        <div class="form-group full-width"><label>Titlu Album / Single *</label><input type="text" id="m-titlu"></div>
+                        <div class="form-group"><label>An lansare</label><input type="number" id="m-an"></div>
+                        <div class="form-group"><label>Titlu Film (Soundtrack)</label><input type="text" id="m-soundtrack"></div>
+                        <div class="form-group full-width"><label>Extras din album / Coloană sonoră</label><input type="text" id="m-extras"></div>
+                        <div class="form-group full-width"><label>URL Copertă Album</label><input type="text" id="m-coperta" oninput="previewImg('muzica')"></div>
+                    </div>
+                    <div class="image-card-container"><label style="font-size:0.8rem; font-weight:600; margin-bottom:4px;">Copertă Album</label><div class="image-card box-muzica" id="p-muzica-img"><div class="no-image-text">Fără imagine</div></div></div>
+                </div>
+                
+                <div class="btn-container">
+                    <button class="action btn-delete crud-btn" id="del-muzica" onclick="deleteItem('muzica')">Șterge</button>
+                    <button class="action btn-clear crud-btn" id="clear-muzica" onclick="clearFields('muzica')">Resetează</button>
+                    <button class="action btn-save crud-btn" id="save-muzica" onclick="saveItem('muzica')">Salvează</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const CONFIG = {
+        p1: "brasov",
+        p2: "timisoara$KY",
+        gitUser: "SKYeudor",
+        gitRepo: "baza-date-media",
+        gitFile: "date.json",
+        gitToken: "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"
+    };
+
+    let db = { carti: [], filme: [], muzica: [] };
+    let currentMode = "READ"; 
+    let selectedIds = { carti: null, filme: null, muzica: null };
+    let shaFile = ""; 
+
+    function showLoading(show, text = "Se sincronizează cu cloud...") {
+        document.getElementById('loading-text').innerText = text;
+        document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none';
+    }
+
+    function verifyLogin() {
+        const input = document.getElementById('pass-input').value;
+        const err = document.getElementById('login-error');
+        
+        if (input === CONFIG.p1) {
+            currentMode = "READ";
+            initializeAccess();
+        } else if (input === CONFIG.p2) {
+            currentMode = "WRITE";
+            initializeAccess();
+        } else {
+            err.style.display = "block";
+        }
+    }
+
+    function initializeAccess() {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('app-container').style.display = 'block';
+        document.getElementById('login-error').style.display = 'none';
+        document.getElementById('pass-input').value = '';
+        
+        const ind = document.getElementById('mode-indicator');
+        if (currentMode === "READ") {
+            ind.innerHTML = '<span class="badge-mode mode-read">MOD DOAR VIZUALIZARE</span>';
+            // Ascunde butoanele de inserare element nou
+            document.querySelectorAll('.write-only-block').forEach(el => el.style.setProperty('display', 'none', 'important'));
+            // Blochează casetele de text introducere date
+            document.querySelectorAll('.crud-section input, .crud-section select').forEach(el => el.disabled = true);
+            // Inactivează butoanele CRUD de jos
+            document.querySelectorAll('.crud-btn').forEach(btn => btn.disabled = true);
+        } else {
+            ind.innerHTML = '<span class="badge-mode mode-write">MOD EDITARE COMPLETĂ</span>';
+            // Afișează butoanele de inserare element nou
+            document.querySelectorAll('.write-only-block').forEach(el => el.style.setProperty('display', 'block', 'important'));
+            // Deblochează casetele de text introducere date
+            document.querySelectorAll('.crud-section input, .crud-section select').forEach(el => el.disabled = false);
+            // Activează butoanele CRUD de jos
+            document.querySelectorAll('.crud-btn').forEach(btn => btn.disabled = false);
+        }
+        
+        loadDataFromCloud();
+    }
+
+    function logoutApplication() {
+        db = { carti: [], filme: [], muzica: [] };
+        selectedIds = { carti: null, filme: null, muzica: null };
+        shaFile = "";
+        
+        clearFields('carti');
+        clearFields('filme');
+        clearFields('muzica');
+        resetSearchFilters('carti');
+        resetSearchFilters('filme');
+        resetSearchFilters('muzica');
+        
+        document.body.className = ''; 
+        document.getElementById('app-container').style.display = 'none';
+        document.getElementById('login-screen').style.display = 'block';
+    }
+
+    async function loadDataFromCloud() {
+        showLoading(true, "Se descarcă datele din seiful privat...");
+        const url = `https://api.github.com/repos/${CONFIG.gitUser}/${CONFIG.gitRepo}/contents/${CONFIG.gitFile}`;
+        
+        try {
+            let response = await fetch(url, {
+                method: "GET",
+                headers: { "Authorization": `token ${CONFIG.gitToken}`, "Accept": "application/vnd.github.v3+json" }
+            });
+            
+            if (response.ok) {
+                let resData = await response.json();
+                shaFile = resData.sha;
+                let rawContent = atob(resData.content);
+                let decodedContent = decodeURIComponent(escape(rawContent));
+                db = JSON.parse(decodedContent);
+            }
+        } catch (e) {
+            alert("Eroare la conectarea cu GitHub.");
+        }
+        
+        showLoading(false);
+        switchCategory('carti'); 
+    }
+
+    async function saveDataToCloud() {
+        if(currentMode !== "WRITE") return;
+        showLoading(true, "Se salvează modificările în seiful privat...");
+        const url = `https://api.github.com/repos/${CONFIG.gitUser}/${CONFIG.gitRepo}/contents/${CONFIG.gitFile}`;
+        
+        let stringData = JSON.stringify(db, null, 2);
+        let base64Content = btoa(unescape(encodeURIComponent(stringData)));
+        
+        let bodyObj = {
+            message: "Actualizare baza date media - IDBDC",
+            content: base64Content,
+            sha: shaFile
+        };
+
+        try {
+            let response = await fetch(url, {
+                method: "PUT",
+                headers: { "Authorization": `token ${CONFIG.gitToken}`, "Content-Type": "application/json" },
+                body: JSON.stringify(bodyObj)
+            });
+            
+            if (response.ok) {
+                let resData = await response.json();
+                shaFile = resData.content.sha;
+            } else {
+                alert("Eroare la salvarea în cloud.");
+            }
+        } catch (e) {
+            alert("Eroare tehnică la conexiune.");
+        }
+        showLoading(false);
+    }
+
+    function switchCategory(cat) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        
+        document.getElementById(`btn-tab-${cat}`).classList.add('active');
+        document.getElementById(`sec-${cat}`).classList.add('active');
+        
+        document.body.className = `bg-${cat}`;
+        
+        if(currentMode === "WRITE") {
+            setMode(cat, 'insert');
+        } else {
+            setMode(cat, 'view');
+        }
+        
+        if(cat==='carti') renderCarti(); 
+        if(cat==='filme') renderFilme(); 
+        if(cat==='muzica') renderMuzica();
+    }
+
+    function renderCarti() {
+        const body = document.getElementById('t-carti-body'); body.innerHTML = '';
+        const fFormat = document.getElementById('s-carte-format').value;
+        const fA = document.getElementById('s-carte-autor').value.toLowerCase();
+        const fT = document.getElementById('s-carte-titlu').value.toLowerCase();
+        
+        if(!db.carti) db.carti = [];
+        db.carti.filter(b => {
+            const matchesFormat = (fFormat === 'Toate' || b.format === fFormat);
+            return matchesFormat && b.autor.toLowerCase().includes(fA) && b.titlu.toLowerCase().includes(fT);
+        }).forEach(b => {
+            let tr = document.createElement('tr'); if(b.id === selectedIds.carti) tr.className = 'selected-row';
+            tr.innerHTML = `<td>${b.autor}</td><td>${b.titlu}</td>`;
+            tr.onclick = () => selectItem('carti', b.id); body.appendChild(tr);
+        });
+    }
+
+    function renderFilme() {
+        const body = document.getElementById('t-filme-body'); body.innerHTML = '';
+        const fTip = document.getElementById('s-film-tip').value;
+        const fStatus = document.getElementById('s-film-status').value; 
+        const fActor = document.getElementById('s-film-actor').value.toLowerCase();
+        const fTitlu = document.getElementById('s-film-titlu').value.toLowerCase();
+        
+        if(!db.filme) db.filme = [];
+        db.filme.filter(f => {
+            const matchesTip = (fTip === 'Toate' || f.tip === fTip);
+            const matchesStatus = (fStatus === 'Toate' || f.status === fStatus); 
+            const matchesActor = f.distributie.toLowerCase().includes(fActor);
+            const matchesTitlu = f.titluRo.toLowerCase().includes(fTitlu) || f.titluOrig.toLowerCase().includes(fTitlu);
+            return matchesTip && matchesStatus && matchesActor && matchesTitlu;
+        }).forEach(f => {
+            let tr = document.createElement('tr'); if(f.id === selectedIds.filme) tr.className = 'selected-row';
+            const titluAfișat = f.titluRo ? `<strong>${f.titluOrig}</strong> <span style="color:#7f8c8d; font-size:0.85rem;">(${f.titluRo})</span>` : `<strong>${f.titluOrig}</strong>`;
+            tr.innerHTML = `<td>${titluAfișat}</td>`;
+            tr.onclick = () => selectItem('filme', f.id); body.appendChild(tr);
+        });
+    }
+
+    function renderMuzica() {
+        const body = document.getElementById('t-muzica-body'); body.innerHTML = '';
+        const fTip = document.getElementById('s-muzica-tip').value;
+        const fA = document.getElementById('s-muzica-artist').value.toLowerCase();
+        const fT = document.getElementById('s-muzica-titlu').value.toLowerCase();
+        
+        if(!db.muzica) db.muzica = [];
+        db.muzica.filter(m => {
+            const matchesTip = (fTip === 'Toate' || m.tip === fTip);
+            return matchesTip && m.artist.toLowerCase().includes(fA) && m.titlu.toLowerCase().includes(fT);
+        }).forEach(m => {
+            let tr = document.createElement('tr'); if(m.id === selectedIds.muzica) tr.className = 'selected-row';
+            tr.innerHTML = `<td>${m.artist}</td><td>${m.titlu}</td>`;
+            tr.onclick = () => selectItem('muzica', m.id); body.appendChild(tr);
+        });
+    }
+
+    function resetSearchFilters(cat) {
+        if(cat === 'carti') {
+            document.getElementById('s-carte-format').selectedIndex = 0;
+            document.getElementById('s-carte-autor').value = '';
+            document.getElementById('s-carte-titlu').value = '';
+            renderCarti();
+        } else if(cat === 'filme') {
+            document.getElementById('s-film-tip').selectedIndex = 0;
+            document.getElementById('s-film-status').selectedIndex = 0;
+            document.getElementById('s-film-actor').value = '';
+            document.getElementById('s-film-titlu').value = '';
+            renderFilme();
+        } else if(cat === 'muzica') {
+            document.getElementById('s-muzica-tip').selectedIndex = 0;
+            document.getElementById('s-muzica-artist').value = '';
+            document.getElementById('s-muzica-titlu').value = '';
+            renderMuzica();
+        }
+    }
+
+    function selectItem(cat, id) {
+        selectedIds[cat] = id;
+        let item = db[cat].find(i => i.id === id);
+        setMode(cat, 'edit');
+        
+        if(cat === 'carti') {
+            document.getElementById('c-format').value = item.format; document.getElementById('c-gen').value = item.gen;
+            document.getElementById('c-autor').value = item.autor; document.getElementById('c-titlu').value = item.titlu;
+            document.getElementById('c-an').value = item.an; document.getElementById('c-pagini').value = item.pagini;
+            document.getElementById('c-editura').value = item.editura; document.getElementById('c-colectia').value = item.colectia;
+            document.getElementById('c-seria').value = item.seria; document.getElementById('c-coperta').value = item.coperta;
+        } else if (cat === 'filme') {
+            document.getElementById('f-tip').value = item.tip; 
+            document.getElementById('f-status').value = item.status || "De vizionat"; 
+            document.getElementById('f-gen').value = item.gen;
+            document.getElementById('f-titlu-orig').value = item.titluOrig; document.getElementById('f-titlu-ro').value = item.titluRo; 
+            document.getElementById('f-regizor').value = item.regizor; document.getElementById('f-an').value = item.an; 
+            document.getElementById('f-durata').value = item.durata; document.getElementById('f-distributie').value = item.distributie; 
+            document.getElementById('f-coperta').value = item.coperta;
+        } else if (cat === 'muzica') {
+            document.getElementById('m-tip').value = item.tip; document.getElementById('m-gen').value = item.gen;
+            document.getElementById('m-artist').value = item.artist; document.getElementById('m-titlu').value = item.titlu;
+            document.getElementById('m-an').value = item.an; document.getElementById('m-soundtrack').value = item.soundtrack;
+            document.getElementById('m-extras').value = item.extras; document.getElementById('m-coperta').value = item.coperta;
+        }
+        previewImg(cat);
+        if(cat==='carti') renderCarti(); if(cat==='filme') renderFilme(); if(cat==='muzica') renderMuzica();
+    }
+
+    function previewImg(cat) {
+        let pfx = cat === 'carti' ? 'c' : (cat === 'filme' ? 'f' : 'm');
+        let url = document.getElementById(`${pfx}-coperta`).value.trim();
+        let box = document.getElementById(`p-${cat}-img`);
+        if(url) { box.innerHTML = `<img src="${url}" onerror="this.parentNode.innerHTML='<div class=\'no-image-text\'>Link Invalid</div>'">`; }
+        else { box.innerHTML = `<div class="no-image-text">Fără imagine</div>`; }
+    }
+
+    function setMode(cat, mode) {
+        let h = document.getElementById(`h-${cat}-title`);
+        let b = document.getElementById(`b-${cat}`);
+        let delBtn = document.getElementById(`del-${cat}`);
+        
+        if(currentMode === "READ") {
+            h.innerText = "Vizualizare caracteristici"; 
+            b.innerText = "Informații"; 
+            b.style.background = "#7f8c8d";
+            return;
+        }
+
+        if(mode === 'insert') {
+            selectedIds[cat] = null; clearFields(cat);
+            h.innerText = "Inserare caracteristici element nou"; 
+            b.innerText = "Element Nou"; 
+            b.style.background = "#e74c3c"; 
+            if(delBtn) delBtn.style.setProperty('display', 'none', 'important');
+            if(cat==='carti') renderCarti(); if(cat==='filme') renderFilme(); if(cat==='muzica') renderMuzica();
+        } else {
+            h.innerText = "Actualizare caracteristici element"; 
+            b.innerText = "Element Selectat"; 
+            b.style.background = "#3498db"; 
+            if(delBtn) delBtn.style.setProperty('display', 'inline-block', 'important');
+        }
+    }
+
+    function clearFields(cat) {
+        let pfx = cat === 'carti' ? 'c' : (cat === 'filme' ? 'f' : 'm');
+        document.querySelectorAll(`[id^="${pfx}-"]`).forEach(el => { 
+            if(el.tagName === "INPUT") el.value = ''; 
+            if(el.tagName === "SELECT" && el.id !== 'f-tip' && el.id !== 'f-status' && el.id !== 'c-format' && el.id !== 'm-tip') el.selectedIndex = 0;
+        });
+        previewImg(cat);
+    }
+
+    async function saveItem(cat) {
+        if(currentMode !== "WRITE") return;
+        let id = selectedIds[cat];
+        
+        if(cat === 'carti' && (!document.getElementById('c-autor').value || !document.getElementById('c-titlu').value)) return alert("Autor și Titlu obligatorii!");
+        if(cat === 'filme' && (!document.getElementById('f-titlu-orig').value || !document.getElementById('f-distributie').value)) return alert("Titlu Original și Distribuție obligatorii!");
+        if(cat === 'muzica' && (!document.getElementById('m-artist').value || !document.getElementById('m-titlu').value)) return alert("Artist și Titlu obligatorii!");
+
+        let data = {};
+        let timestampId = id || Date.now(); 
+        
+        if(cat === 'carti') {
+            data = { id: timestampId, format: document.getElementById('c-format').value, gen: document.getElementById('c-gen').value, autor: document.getElementById('c-autor').value, titlu: document.getElementById('c-titlu').value, an: document.getElementById('c-an').value, pagini: document.getElementById('c-pagini').value, editura: document.getElementById('c-editura').value, colectia: document.getElementById('c-colectia').value, seria: document.getElementById('c-seria').value, coperta: document.getElementById('c-coperta').value };
+        } else if(cat === 'filme') {
+            data = { id: timestampId, tip: document.getElementById('f-tip').value, status: document.getElementById('f-status').value, gen: document.getElementById('f-gen').value, titluOrig: document.getElementById('f-titlu-orig').value, titluRo: document.getElementById('f-titlu-ro').value, regizor: document.getElementById('f-regizor').value, an: document.getElementById('f-an').value, durata: document.getElementById('f-durata').value, distributie: document.getElementById('f-distributie').value, coperta: document.getElementById('f-coperta').value };
+        } else if(cat === 'muzica') {
+            data = { id: timestampId, tip: document.getElementById('m-tip').value, gen: document.getElementById('m-gen').value, artist: document.getElementById('m-artist').value, titlu: document.getElementById('m-titlu').value, an: document.getElementById('m-an').value, soundtrack: document.getElementById('m-soundtrack').value, extras: document.getElementById('m-extras').value, coperta: document.getElementById('m-coperta').value };
+        }
+
+        if(id) { 
+            let idx = db[cat].findIndex(i => i.id === id); db[cat][idx] = data; 
+        } else { 
+            db[cat].push(data); selectedIds[cat] = data.id; 
+        }
+
+        await saveDataToCloud();
+        if(cat==='carti') renderCarti(); if(cat==='filme') renderFilme(); if(cat==='muzica') renderMuzica();
+        selectItem(cat, selectedIds[cat]);
+    }
+
+    async function deleteItem(cat) {
+        if(currentMode !== "WRITE") return;
+        if(confirm("Sigur doriți să ștergeți această înregistrare din cloud?")) {
+            db[cat] = db[cat].filter(i => i.id !== selectedIds[cat]);
+            await saveDataToCloud();
+            setMode(cat, 'insert');
+        }
+    }
+</script>
+</body>
+</html>
