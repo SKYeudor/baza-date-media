@@ -98,7 +98,7 @@
                 <h2 class="text-lg font-bold text-white tracking-wide uppercase flex items-center gap-2">
                     <i class="fa-solid fa-square-poll-horizontal text-blue-500"></i> Inserare caracteristici
                 </h2>
-                <span class="text-[10px] bg-blue-900/50 text-blue-300 px-2 py-0.5 rounded border border-blue-800 uppercase font-bold tracking-widest">Informații</span>
+                <span id="modal-category-badge" class="text-[10px] bg-blue-900/50 text-blue-300 px-2 py-0.5 rounded border border-blue-800 uppercase font-bold tracking-widest">CATEGORIE</span>
             </div>
 
             <form id="crud-form" onsubmit="saveElement(event)">
@@ -110,11 +110,14 @@
                         </div>
 
                     <div class="flex flex-col items-center justify-start border-l border-gray-700/50 lg:pl-6 pt-4 lg:pt-0">
-                        <label id="form-image-label" class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Afiș Cinema / Copertă</label>
-                        <div id="image-preview-container" class="w-48 h-64 bg-gray-900 border-2 border-dashed border-gray-600 rounded-xl flex flex-col items-center justify-center text-center p-4 overflow-hidden shadow-inner">
-                            <i id="image-placeholder-icon" class="fa-regular fa-image text-4xl text-gray-600 mb-2"></i>
-                            <span id="image-placeholder-text" class="text-xs text-gray-500">Fără imagine</span>
-                            <img id="image-preview-element" class="hidden w-full h-full object-cover rounded-lg" src="" alt="Preview">
+                        <label id="form-image-label" class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Imagine</label>
+                        
+                        <div id="image-wrapper" class="flex items-center justify-center bg-gray-900 border-2 border-dashed border-gray-600 rounded-xl overflow-hidden shadow-inner p-2">
+                            <div id="image-preview-container" class="w-full h-full flex flex-col items-center justify-center text-center">
+                                <i id="image-placeholder-icon" class="fa-regular fa-image text-4xl text-gray-600 mb-2"></i>
+                                <span id="image-placeholder-text" class="text-xs text-gray-500">Fără imagine</span>
+                                <img id="image-preview-element" class="hidden w-full h-full object-cover rounded-lg" src="" alt="Preview">
+                            </div>
                         </div>
                     </div>
 
@@ -145,17 +148,15 @@
         let currentCategory = 'filme';
         let activeFilters = {};
 
-        // Baza de date cu toate proprietățile reflectate în noile machete din imagini
         let database = { 
             filme: [
-                { cod: "F001", titlu: "The Shawshank Redemption", tip: "Film", status: "Vizionat", gen: "Drama", an: "1994", regizor: "Frank Darabont", durata: "142", actori: "Tim Robbins, Morgan Freeman", imdb: "https://www.imdb.com/title/tt0111161/", url_img: "https://m.media-amazon.com/images/M/MV5BNDE3ODcxNzM1NV5BMl5BanBnXkFtZTgwOTg0MTAwNzE@._V1_.jpg" },
-                { cod: "F002", titlu: "Inception", tip: "Film", status: "De vizionat", gen: "Sci-Fi", an: "2010", regizor: "Christopher Nolan", durata: "148", actori: "Leonardo DiCaprio, Joseph Gordon-Levitt", imdb: "", url_img: "" }
+                { cod: "F001", titlu: "The Shawshank Redemption", tip: "Film", status: "Vizionat", gen: "Drama", an: "1994", regizor: "Frank Darabont", durata: "142", actori: "Tim Robbins, Morgan Freeman", imdb: "https://www.imdb.com/title/tt0111161/", url_img: "https://m.media-amazon.com/images/M/MV5BNDE3ODcxNzM1NV5BMl5BanBnXkFtZTgwOTg0MTAwNzE@._V1_.jpg" }
             ], 
             muzica: [
-                { cod: "M001", titlu: "Bohemian Rhapsody", tip: "Single", autor: "Queen", gen: "Rock", an: "1975", film: "Bohemian Rhapsody (2018)", extras: "A Night at the Opera", url_img: "" }
+                { cod: "M001", titlu: "Bohemian Rhapsody", tip: "Single", autor: "Queen", gen: "Rock", an: "1975", film: "Bohemian Rhapsody (2018)", extras: "A Night at the Opera", url_img: "https://m.media-amazon.com/images/I/71u9SgS89SL._SL1500_.jpg" }
             ], 
             carti: [
-                { cod: "C001", titlu: "Tata bogat, tata sarac", tip: "Electronic", autor: "Robert Kiyosaki", gen: "Finante", an: "1997", pagini: "207", editura: "Curtea Veche", colectie: "Carti Cheie", seria: "", url_img: "" }
+                { cod: "C001", titlu: "Tata bogat, tata sarac", tip: "Electronic", autor: "Robert Kiyosaki", gen: "Finante", an: "1997", pagini: "207", editura: "Curtea Veche", colectie: "Carti Cheie", seria: "", url_img: "https://www.curteaveche.ro/media/catalog/product/cache/1/image/9df78eab33525d08d6e5fb8d27136e95/t/a/tata-bogat-tata-sarac-editia-v-robert-t-kiyosaki.jpg" }
             ] 
         };
 
@@ -187,7 +188,6 @@
             renderTable();
         }
 
-        // CĂUTARE DINAMICĂ (Secțiunea 2)
         function buildFiltersUI() {
             const container = document.getElementById('filters-container');
             container.innerHTML = '';
@@ -266,7 +266,6 @@
             if (document.getElementById('filter-text2')) document.getElementById('filter-text2').value = activeFilters.text2 || "";
         }
 
-        // CAPETE DE TABEL DINAMICE (Secțiunea 3)
         function buildTableHeaderUI() {
             const headerRow = document.getElementById('table-header-row');
             let actionsHtml = isAdmin ? `<th class="p-3 text-center w-24">Acțiuni</th>` : '';
@@ -319,7 +318,6 @@
             renderTable();
         }
 
-        // CONSTRUIRE TABEL REZULTATE
         function renderTable() {
             const tbody = document.getElementById('data-tbody');
             tbody.innerHTML = '';
@@ -362,7 +360,7 @@
                     const imdbAttr = hasImdb ? `href="${item.imdb}" target="_blank"` : `onclick="alert('Fără link IMDB.')"`;
 
                     tr.innerHTML = `
-                        <td class="p-3 font-mono text-xs text-blue-400 font-bold">${item.cod || 'F-' + index}</td>
+                        <td class="p-3 font-mono text-xs text-blue-400 font-bold">${item.cod || ''}</td>
                         <td class="p-3"><div class="font-semibold text-white">${item.titlu}</div></td>
                         <td class="p-3 text-xs">${item.tip || 'Film'}</td>
                         <td class="p-3 text-xs font-medium ${item.status === 'Vizionat' ? 'text-green-400' : 'text-amber-400'}">${item.status || 'De vizionat'}</td>
@@ -378,7 +376,7 @@
                     `;
                 } else if (currentCategory === 'muzica') {
                     tr.innerHTML = `
-                        <td class="p-3 font-mono text-xs text-blue-400 font-bold">${item.cod || 'M-' + index}</td>
+                        <td class="p-3 font-mono text-xs text-blue-400 font-bold">${item.cod || ''}</td>
                         <td class="p-3 font-semibold text-white">${item.autor || '-'}</td>
                         <td class="p-3 text-gray-300 font-medium">${item.titlu}</td>
                         <td class="p-3 text-xs">${item.tip || 'Album'}</td>
@@ -387,7 +385,7 @@
                     `;
                 } else if (currentCategory === 'carti') {
                     tr.innerHTML = `
-                        <td class="p-3 font-mono text-xs text-blue-400 font-bold">${item.cod || 'C-' + index}</td>
+                        <td class="p-3 font-mono text-xs text-blue-400 font-bold">${item.cod || ''}</td>
                         <td class="p-3 font-semibold text-white">${item.autor || '-'}</td>
                         <td class="p-3 text-gray-300 font-medium">${item.titlu}</td>
                         <td class="p-3 text-xs">${item.tip || 'Tiparit'} ${item.editura ? ' / '+item.editura : ''}</td>
@@ -402,7 +400,27 @@
             document.getElementById('item-count').textContent = `${counter} elemente identificate`;
         }
 
-        // GENERARE DINAMICĂ A CÂMPURILOR FORMULARULUI CONFORM IMAGINILOR USERULUI
+        // APLICARE STANDARDIZARE GEOMETRICĂ DUPĂ CATEGORIE
+        function applyImageGeometry() {
+            const wrapper = document.getElementById('image-wrapper');
+            if (currentCategory === 'filme') {
+                wrapper.style.width = '320px';
+                wrapper.style.height = '450px';
+                document.getElementById('form-image-label').textContent = "Afiș Cinema (320x450)";
+                document.getElementById('modal-category-badge').textContent = "Filme & Seriale";
+            } else if (currentCategory === 'muzica') {
+                wrapper.style.width = '350px';
+                wrapper.style.height = '350px';
+                document.getElementById('form-image-label').textContent = "Copertă Album (350x350)";
+                document.getElementById('modal-category-badge').textContent = "Muzică";
+            } else if (currentCategory === 'carti') {
+                wrapper.style.width = '300px';
+                wrapper.style.height = '450px';
+                document.getElementById('form-image-label').textContent = "Copertă Carte (300x450)";
+                document.getElementById('modal-category-badge').textContent = "Cărți";
+            }
+        }
+
         function generateFormFieldsHTML() {
             const container = document.getElementById('dynamic-form-fields');
             
@@ -413,7 +431,7 @@
                             <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Cod Element *</label>
                             <input type="text" id="form-cod" required class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
                         </div>
-                        <div class="flex grid grid-cols-2 gap-2">
+                        <div class="grid grid-cols-2 gap-2">
                             <div class="flex flex-col">
                                 <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tip Conținut</label>
                                 <select id="form-tip" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
@@ -470,7 +488,6 @@
                         </div>
                     </div>
                 `;
-                document.getElementById('form-image-label').textContent = "Afiș Cinema";
             } else if (currentCategory === 'muzica') {
                 container.innerHTML = `
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -519,7 +536,6 @@
                         <input type="url" id="form-url-img" oninput="updateImagePreview(this.value)" placeholder="https://..." class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
                     </div>
                 `;
-                document.getElementById('form-image-label').textContent = "Copertă Album";
             } else if (currentCategory === 'carti') {
                 container.innerHTML = `
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -578,11 +594,9 @@
                         <input type="url" id="form-url-img" oninput="updateImagePreview(this.value)" placeholder="https://..." class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
                     </div>
                 `;
-                document.getElementById('form-image-label').textContent = "Copertă Carte";
             }
         }
 
-        // CONTROL AUTENTIFICARE ȘI MOD ADMIN
         function toggleAdminMode() {
             if (!isAdmin) {
                 const pass = prompt("Introduceți parola de administrare pentru securizarea datelor:");
@@ -621,23 +635,28 @@
             }
         }
 
-        // CONTROL MODAL (CRUD)
         function openModal(mode, index = null) {
             if (!isAdmin) return;
             generateFormFieldsHTML();
+            applyImageGeometry();
             
             const modal = document.getElementById('crud-modal');
             const deleteBtn = document.getElementById('form-delete-btn');
+            const codInput = document.getElementById('form-cod');
             
             modal.classList.remove('hidden');
             
             if (mode === 'add') {
                 document.getElementById('form-edit-index').value = "";
                 deleteBtn.classList.add('hidden');
+                codInput.disabled = false;
+                codInput.classList.remove('opacity-50', 'cursor-not-allowed');
                 resetFormFields();
             } else if (mode === 'edit' && index !== null) {
                 document.getElementById('form-edit-index').value = index;
                 deleteBtn.classList.remove('hidden');
+                codInput.disabled = true;
+                codInput.classList.add('opacity-50', 'cursor-not-allowed');
                 fillFormValues(index);
             }
         }
@@ -728,14 +747,12 @@
             }
 
             if (idxStr === "") {
-                // Adăugare element nou
                 if (database[currentCategory].some(x => x.cod.toLowerCase() === cod.toLowerCase())) {
                     alert("Atenție! Acest Cod Element există deja în catalog.");
                     return;
                 }
                 database[currentCategory].push(item);
             } else {
-                // Editare element existent
                 const index = parseInt(idxStr);
                 database[currentCategory][index] = item;
             }
@@ -765,7 +782,6 @@
             updateImagePreview("");
         }
 
-        // Pornire implicită pe Filme
         resetFiltersObject();
         switchCategory('filme');
     </script>
