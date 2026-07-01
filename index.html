@@ -104,19 +104,19 @@
             <form id="crud-form" onsubmit="saveElement(event)">
                 <input type="hidden" id="form-edit-index">
                 
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
                     
                     <div id="dynamic-form-fields" class="lg:col-span-2 space-y-4">
                         </div>
 
-                    <div class="flex flex-col items-center justify-start border-l border-gray-700/50 lg:pl-6 pt-4 lg:pt-0">
+                    <div class="flex flex-col items-center justify-start border-l border-gray-700/50 lg:pl-6 pt-4 lg:pt-0 sticky top-0">
                         <label id="form-image-label" class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Imagine</label>
                         
-                        <div id="image-wrapper" class="flex items-center justify-center bg-gray-900 border-2 border-dashed border-gray-600 rounded-xl overflow-hidden shadow-inner p-2">
-                            <div id="image-preview-container" class="w-full h-full flex flex-col items-center justify-center text-center">
-                                <i id="image-placeholder-icon" class="fa-regular fa-image text-4xl text-gray-600 mb-2"></i>
-                                <span id="image-placeholder-text" class="text-xs text-gray-500">Fără imagine</span>
-                                <img id="image-preview-element" class="hidden w-full h-full object-cover rounded-lg" src="" alt="Preview">
+                        <div id="image-wrapper" class="flex items-center justify-center bg-gray-900 border-2 border-dashed border-gray-600 rounded-xl overflow-hidden shadow-inner p-1.5 transition-all duration-200">
+                            <div id="image-preview-container" class="w-full h-full flex flex-col items-center justify-center text-center p-1">
+                                <i id="image-placeholder-icon" class="fa-regular fa-image text-2xl text-gray-600 mb-1"></i>
+                                <span id="image-placeholder-text" class="text-[10px] text-gray-500">Fără imagine</span>
+                                <img id="image-preview-element" class="hidden w-full h-full object-cover rounded-md" src="" alt="Preview">
                             </div>
                         </div>
                     </div>
@@ -400,23 +400,23 @@
             document.getElementById('item-count').textContent = `${counter} elemente identificate`;
         }
 
-        // APLICARE STANDARDIZARE GEOMETRICĂ DUPĂ CATEGORIE
+        // RECALIBRARE GEOMETRICĂ LA JUMĂTATE (1/2) DUPĂ PROTOCOL
         function applyImageGeometry() {
             const wrapper = document.getElementById('image-wrapper');
             if (currentCategory === 'filme') {
-                wrapper.style.width = '320px';
-                wrapper.style.height = '450px';
-                document.getElementById('form-image-label').textContent = "Afiș Cinema (320x450)";
+                wrapper.style.width = '160px';
+                wrapper.style.height = '225px';
+                document.getElementById('form-image-label').textContent = "Afiș (160x225)";
                 document.getElementById('modal-category-badge').textContent = "Filme & Seriale";
             } else if (currentCategory === 'muzica') {
-                wrapper.style.width = '350px';
-                wrapper.style.height = '350px';
-                document.getElementById('form-image-label').textContent = "Copertă Album (350x350)";
+                wrapper.style.width = '175px';
+                wrapper.style.height = '175px';
+                document.getElementById('form-image-label').textContent = "Copertă (175x175)";
                 document.getElementById('modal-category-badge').textContent = "Muzică";
             } else if (currentCategory === 'carti') {
-                wrapper.style.width = '300px';
-                wrapper.style.height = '450px';
-                document.getElementById('form-image-label').textContent = "Copertă Carte (300x450)";
+                wrapper.style.width = '150px';
+                wrapper.style.height = '225px';
+                document.getElementById('form-image-label').textContent = "Copertă (150x225)";
                 document.getElementById('modal-category-badge').textContent = "Cărți";
             }
         }
