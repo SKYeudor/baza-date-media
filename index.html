@@ -126,8 +126,7 @@
                             <div id="image-preview-container" class="w-full h-full flex flex-col items-center justify-center text-center p-0 relative">
                                 <i id="image-placeholder-icon" class="fa-regular fa-image text-2xl text-gray-600 mb-1"></i>
                                 <span id="image-placeholder-text" class="text-[10px] text-gray-500">Fără imagine</span>
-                                <!-- Adăugat referrerpolicy="no-referrer" pentru a trece de blocajele serverelor externe -->
-                                <img id="image-preview-element" referrerpolicy="no-referrer" class="hidden absolute inset-0 w-full h-full object-cover rounded-md" src="" alt="Preview">
+                                <img id="image-preview-element" class="hidden absolute inset-0 w-full h-full object-cover rounded-md" src="" alt="Preview">
                             </div>
                         </div>
                     </div>
@@ -655,7 +654,12 @@
             const text = document.getElementById('image-placeholder-text');
             const img = document.getElementById('image-preview-element');
             if (url && url.trim() !== "" && url.toLowerCase().startsWith('http')) {
-                img.src = url; 
+                // Curățăm linkul de eventuale spații
+                let cleanUrl = url.trim();
+                // Eliminăm protocolul http/https nativ pentru a-l injecta în proxy-ul de imagini weserv (care ocolește complet blocările referer/hotlink)
+                let proxyUrl = "https://images.weserv.nl/?url=" + encodeURIComponent(cleanUrl.replace(/^https?:\/\//i, ''));
+                
+                img.src = proxyUrl; 
                 img.classList.remove('hidden'); 
                 icon.classList.add('hidden'); 
                 text.classList.add('hidden');
