@@ -4,165 +4,139 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IDBDC Media</title>
-    <!-- Tailwind CSS pentru un design modern -->
+    <!-- Tailwind CSS pentru design modern -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- FontAwesome pentru pictograme (inclusiv logo-ul IMDB) -->
+    <!-- FontAwesome pentru pictograme -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .imdb-btn-active {
-            background-color: #f5c518;
-            color: #000000;
-        }
-        .imdb-btn-active:hover {
-            background-color: #e2b616;
-        }
-        .imdb-btn-inactive {
-            background-color: #374151;
-            color: #9ca3af;
-            cursor: not-allowed;
-        }
+        .imdb-btn-active { background-color: #f5c518; color: #000000; }
+        .imdb-btn-active:hover { background-color: #e2b616; }
+        .imdb-btn-inactive { background-color: #374151; color: #9ca3af; cursor: not-allowed; }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen font-sans">
 
-    <!-- ECRAN DE AUTENTIFICARE -->
-    <div id="login-screen" class="flex items-center justify-center min-h-screen px-4">
-        <div class="bg-gray-800 p-8 rounded-2xl shadow-2xl w-full max-w-md border border-gray-700">
-            <div class="text-center mb-8">
-                <i class="fa-solid fa-photo-film text-5xl text-blue-500 mb-3"></i>
-                <h1 class="text-2xl font-bold tracking-wide text-white">IDBDC Media</h1>
-                <p class="text-gray-400 text-sm mt-1">Introduceți parola pentru acces</p>
+    <!-- ANTET FIX (HEADER) -->
+    <header class="bg-gray-800 border-b border-gray-700 sticky top-0 z-50 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-database text-blue-500 text-2xl"></i>
+                <h1 class="text-xl font-bold tracking-wider text-white">IDBDC <span class="text-blue-400 font-medium">Media Catalog</span></h1>
+                <span id="role-badge" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-900 text-blue-300">Mod Vizualizare</span>
             </div>
-            <div class="space-y-4">
-                <input type="password" id="password-input" placeholder="Parolă..." 
-                    class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl focus:outline-none focus:border-blue-500 text-white placeholder-gray-400 text-center text-lg tracking-widest">
-                <button onclick="handleLogin()" 
-                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition duration-200 shadow-lg shadow-blue-900/30">
-                    Acces Bază de Date
+            <div class="flex items-center gap-3 w-full sm:w-auto">
+                <div class="relative w-full sm:w-64">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-gray-400 text-sm"></i>
+                    <input type="text" id="search-input" oninput="renderTable()" placeholder="Caută titlu, autor, gen..." 
+                        class="w-full pl-10 pr-4 py-2 bg-gray-700 border border-gray-600 rounded-xl focus:outline-none focus:border-blue-500 text-sm placeholder-gray-400">
+                </div>
+                <!-- Butonul de trecere în mod administrare sau deconectare -->
+                <button id="admin-toggle-btn" onclick="toggleAdminMode()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition shadow-lg shadow-blue-950/30 whitespace-nowrap">
+                    <i class="fa-solid fa-lock-open mr-1.5"></i> Actualizare date
                 </button>
-                <p id="login-error" class="text-red-400 text-sm text-center hidden"><i class="fa-solid fa-circle-exclamation mr-1"></i> Parolă incorectă!</p>
             </div>
+        </div>
+        
+        <!-- Selector Categorii -->
+        <div class="max-w-7xl mx-auto px-4 pb-3 flex gap-2 overflow-x-auto">
+            <button onclick="switchCategory('filme')" id="btn-filme" class="px-4 py-1.5 rounded-lg text-sm font-medium transition whitespace-nowrap bg-blue-600 text-white">
+                <i class="fa-solid fa-film mr-1.5"></i> Filme & Seriale
+            </button>
+            <button onclick="switchCategory('muzica')" id="btn-muzica" class="px-4 py-1.5 rounded-lg text-sm font-medium transition whitespace-nowrap bg-gray-700 text-gray-300 hover:bg-gray-600">
+                <i class="fa-solid fa-music mr-1.5"></i> Muzică (MP3)
+            </button>
+            <button onclick="switchCategory('carti')" id="btn-carti" class="px-4 py-1.5 rounded-lg text-sm font-medium transition whitespace-nowrap bg-gray-700 text-gray-300 hover:bg-gray-600">
+                <i class="fa-solid fa-book mr-1.5"></i> Cărți & Documente
+            </button>
+        </div>
+    </header>
+
+    <!-- CONȚINUT PRINCIPAL (TABEL) -->
+    <main class="max-w-7xl mx-auto px-4 py-6">
+        <div class="bg-gray-800 rounded-2xl border border-gray-700 p-6 shadow-xl overflow-hidden flex flex-col">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-3">
+                    <h2 id="table-title" class="text-lg font-semibold text-white">Listă Filme & Seriale</h2>
+                    <!-- Butonul de adăugare (vizibil doar în mod Admin) -->
+                    <button id="add-new-btn" onclick="openModal()" class="hidden px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs font-bold rounded-lg transition items-center gap-1">
+                        <i class="fa-solid fa-plus text-[10px]"></i> Adaugă nou
+                    </button>
+                </div>
+                <span id="item-count" class="text-xs bg-gray-700 text-gray-300 px-2.5 py-1 rounded-md font-mono">0 elemente</span>
+            </div>
+            
+            <div class="overflow-x-auto rounded-xl border border-gray-700">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-750 border-b border-gray-700 text-gray-300 text-xs font-semibold uppercase tracking-wider">
+                            <th class="p-3 w-20">Cod</th>
+                            <th id="th-art-tit" class="p-3">Titlu</th>
+                            <th id="th-detalii" class="p-3">Gen / Detalii</th>
+                            <th id="th-actiuni" class="p-3 text-center w-28 hidden">Acțiuni</th>
+                        </tr>
+                    </thead>
+                    <tbody id="data-tbody" class="text-sm divide-y divide-gray-700 text-gray-300">
+                        <!-- Datele se încarcă din JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- FEREASTRA MODALĂ (FORMULAR FLUTURĂTOR - VARIANTA B) -->
+    <div id="form-modal" class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-gray-800 rounded-2xl border border-gray-700 w-full max-w-md p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-150">
+            <!-- Buton închidere X -->
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white transition text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            
+            <h2 id="form-title" class="text-lg font-semibold text-white mb-4"><i class="fa-solid fa-plus-circle text-green-500 mr-1.5"></i> Adaugă Element Nou</h2>
+            
+            <form id="media-form" onsubmit="saveElement(event)" class="space-y-4">
+                <input type="hidden" id="edit-id">
+                
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Cod Identificare</label>
+                    <input type="text" id="form-cod" required class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label id="lbl-titlu" class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Titlu Film</label>
+                    <input type="text" id="form-titlu" required class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
+                </div>
+                <div id="form-field-autor" class="hidden">
+                    <label id="lbl-autor" class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Artist / Autor</label>
+                    <input type="text" id="form-autor" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label id="lbl-detalii" class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Gen / Format</label>
+                    <input type="text" id="form-detalii" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
+                </div>
+                <div id="form-field-imdb">
+                    <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Link IMDB</label>
+                    <input type="url" id="form-imdb" placeholder="https://www.imdb.com/title/..." class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
+                </div>
+
+                <div class="pt-2 flex gap-2">
+                    <button type="submit" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded-lg text-sm transition">
+                        Salvează
+                    </button>
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg text-sm transition">
+                        Anulează
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <!-- APLICAȚIA PRINCIPALĂ (Ascunsă inițial) -->
-    <div id="app-screen" class="hidden">
-        <!-- Antet fix -->
-        <header class="bg-gray-800 border-b border-gray-700 sticky top-0 z-50 shadow-md">
-            <div class="max-w-7xl  mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div class="flex items-center gap-3">
-                    <i class="fa-solid fa-database text-blue-500 text-2xl"></i>
-                    <h1 class="text-xl font-bold tracking-wider text-white">IDBDC <span class="text-blue-400 font-medium">Media Catalog</span></h1>
-                    <span id="role-badge" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-700 text-gray-300">Vizualizare</span>
-                </div>
-                <div class="flex items-center gap-3 w-full sm:w-auto">
-                    <div class="relative w-full sm:w-64">
-                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-gray-400 text-sm"></i>
-                        <input type="text" id="search-input" oninput="renderTable()" placeholder="Caută titlu, autor, gen..." 
-                            class="w-full pl-10 pr-4 py-2 bg-gray-700 border border-gray-600 rounded-xl focus:outline-none focus:border-blue-500 text-sm placeholder-gray-400">
-                    </div>
-                    <button onclick="logout()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-xl text-sm transition font-medium">
-                        <i class="fa-solid fa-right-from-bracket"></i>
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Selector Categorii -->
-            <div class="max-w-7xl mx-auto px-4 pb-3 flex gap-2 overflow-x-auto">
-                <button onclick="switchCategory('filme')" id="btn-filme" class="px-4 py-1.5 rounded-lg text-sm font-medium transition whitespace-nowrap bg-blue-600 text-white">
-                    <i class="fa-solid fa-film mr-1.5"></i> Filme & Seriale
-                </button>
-                <button onclick="switchCategory('muzica')" id="btn-muzica" class="px-4 py-1.5 rounded-lg text-sm font-medium transition whitespace-nowrap bg-gray-700 text-gray-300 hover:bg-gray-600">
-                    <i class="fa-solid fa-music mr-1.5"></i> Muzică (MP3)
-                </button>
-                <button onclick="switchCategory('carti')" id="btn-carti" class="px-4 py-1.5 rounded-lg text-sm font-medium transition whitespace-nowrap bg-gray-700 text-gray-300 hover:bg-gray-600">
-                    <i class="fa-solid fa-book mr-1.5"></i> Cărți & Documente
-                </button>
-            </div>
-        </header>
-
-        <!-- Conținut Principal -->
-        <main class="max-w-7xl mx-auto px-4 py-6">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                
-                <!-- Secțiunea Tabel (Ocupă 2 coloane pe ecrane mari) -->
-                <div class="lg:col-span-2 bg-gray-800 rounded-2xl border border-gray-700 p-4 shadow-xl overflow-hidden flex flex-col">
-                    <div class="flex items-center justify-between mb-4">
-                        <h2 id="table-title" class="text-lg font-semibold text-white">Listă Filme & Seriale</h2>
-                        <span id="item-count" class="text-xs bg-gray-700 text-gray-300 px-2.5 py-1 rounded-md font-mono">0 elemente</span>
-                    </div>
-                    <div class="overflow-x-auto rounded-xl border border-gray-700">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-gray-750 border-b border-gray-700 text-gray-300 text-xs font-semibold uppercase tracking-wider">
-                                    <th class="p-3">Cod</th>
-                                    <th id="th-art-tit" class="p-3">Titlu</th>
-                                    <th id="th-detalii" class="p-3">Gen / Detalii</th>
-                                    <th class="p-3 text-center">Acțiuni</th>
-                                </tr>
-                            </thead>
-                            <tbody id="data-tbody" class="text-sm divide-y divide-gray-700 text-gray-300">
-                                <!-- Rândurile se generează din JavaScript -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Formular Adăugare/Editare (Ocupă 1 coloană) - Vizibil doar pentru Editor -->
-                <div id="form-container" class="bg-gray-800 rounded-2xl border border-gray-700 p-6 shadow-xl h-fit hidden">
-                    <h2 id="form-title" class="text-lg font-semibold text-white mb-4"><i class="fa-solid fa-plus-circle text-green-500 mr-1.5"></i> Adaugă Element Nou</h2>
-                    <form id="media-form" onsubmit="saveElement(event)" class="space-y-4">
-                        <input type="hidden" id="edit-id">
-                        
-                        <div>
-                            <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Cod Identificare</label>
-                            <input type="text" id="form-cod" required class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
-                        </div>
-                        <div>
-                            <label id="lbl-titlu" class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Titlu Film</label>
-                            <input type="text" id="form-titlu" required class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
-                        </div>
-                        <div id="form-field-autor" class="hidden">
-                            <label id="lbl-autor" class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Artist / Autor</label>
-                            <input type="text" id="form-autor" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
-                        </div>
-                        <div>
-                            <label id="lbl-detalii" class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Gen / Format</label>
-                            <input type="text" id="form-detalii" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
-                        </div>
-                        <!-- Câmp dedicat pentru link-ul IMDB (apare doar la filme/seriale) -->
-                        <div id="form-field-imdb">
-                            <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Link IMDB</label>
-                            <input type="url" id="form-imdb" placeholder="https://www.imdb.com/title/..." class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
-                        </div>
-
-                        <div class="pt-2 flex gap-2">
-                            <button type="submit" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded-lg text-sm transition shadow-md shadow-green-900/20">
-                                Salvează
-                            </button>
-                            <button type="button" onclick="resetForm()" class="px-3 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg text-sm transition">
-                                Anulează
-                            </button>
-                        </div>
-                    </form>
-                </div>
-
-            </div>
-        </main>
-    </div>
-
-    <!-- LOGICĂ OPERAȚIONALĂ JAVASCRIPT -->
+    <!-- SCRIPTURI LOGICĂ OPERAȚIONALĂ -->
     <script>
-        // Configurații Securitate
-        const PASS_VIEW = "brasov";
-        const PASS_EDIT = "timisoara$KY";
-        let currentRole = null; // 'view' sau 'edit'
-        
-        // Starea aplicației
-        let currentCategory = 'filme'; // 'filme', 'muzica', 'carti'
+        const ADMIN_PASSWORD = "bra$ov4";
+        let isAdmin = false; 
+        let currentCategory = 'filme';
         let database = { filme: [], muzica: [], carti: [] };
 
-        // Simularea unei baze de date persistente în cloud prin localStorage pentru testare imediată
+        // Simulare bază de date în localStorage
         if (!localStorage.getItem('idbdc_media_db')) {
             localStorage.setItem('idbdc_media_db', JSON.stringify({
                 filme: [
@@ -179,51 +153,55 @@
         }
         database = JSON.parse(localStorage.getItem('idbdc_media_db'));
 
-        function handleLogin() {
-            const pass = document.getElementById('password-input').value;
-            const errorEl = document.getElementById('login-error');
-            
-            if (pass === PASS_VIEW) {
-                currentRole = 'view';
-            } else if (pass === PASS_EDIT) {
-                currentRole = 'edit';
+        // Funcția de activare/dezactivare mod administrare
+        function toggleAdminMode() {
+            if (!isAdmin) {
+                const pass = prompt("Introduceți parola pentru administrare:");
+                if (pass === null) return; // Utilizatorul a apasat Cancel
+                
+                if (pass === ADMIN_PASSWORD) {
+                    isAdmin = true;
+                    setAdminUI(true);
+                } else {
+                    alert("Parolă incorectă!");
+                }
             } else {
-                errorEl.classList.remove('hidden');
-                return;
+                // Deconectare din modul admin
+                isAdmin = false;
+                setAdminUI(false);
             }
-
-            errorEl.classList.add('hidden');
-            document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('app-screen').classList.remove('hidden');
-            
-            // Ajustări interfață în funcție de rol
-            const badge = document.getElementById('role-badge');
-            const formContainer = document.getElementById('form-container');
-            
-            if (currentRole === 'edit') {
-                badge.textContent = "Editor / Administrator";
-                badge.className = "px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-900 text-green-300";
-                formContainer.classList.remove('hidden');
-            } else {
-                badge.textContent = "Doar Vizualizare";
-                badge.className = "px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-900 text-blue-300";
-                formContainer.classList.add('hidden');
-            }
-
-            switchCategory(currentCategory);
+            renderTable();
         }
 
-        function logout() {
-            currentRole = null;
-            document.getElementById('password-input').value = '';
-            document.getElementById('app-screen').classList.add('hidden');
-            document.getElementById('login-screen').classList.remove('hidden');
+        function setAdminUI(enabled) {
+            const badge = document.getElementById('role-badge');
+            const toggleBtn = document.getElementById('admin-toggle-btn');
+            const addNewBtn = document.getElementById('add-new-btn');
+            const thActiuni = document.getElementById('th-actiuni');
+
+            if (enabled) {
+                badge.textContent = "Mod Administrator";
+                badge.className = "px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-900 text-green-300";
+                toggleBtn.innerHTML = '<i class="fa-solid fa-right-from-bracket mr-1.5"></i> Ieșire Admin';
+                toggleBtn.className = "px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-xl transition shadow-lg shadow-red-950/30 whitespace-nowrap";
+                addNewBtn.classList.remove('hidden');
+                addNewBtn.classList.add('flex');
+                thActiuni.classList.remove('hidden');
+            } else {
+                badge.textContent = "Mod Vizualizare";
+                badge.className = "px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-900 text-blue-300";
+                toggleBtn.innerHTML = '<i class="fa-solid fa-lock-open mr-1.5"></i> Actualizare date';
+                toggleBtn.className = "px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition shadow-lg shadow-blue-950/30 whitespace-nowrap";
+                addNewBtn.classList.add('hidden');
+                addNewBtn.classList.remove('flex');
+                thActiuni.classList.add('hidden');
+                closeModal();
+            }
         }
 
         function switchCategory(cat) {
             currentCategory = cat;
             
-            // Actualizare stil butoane tab
             ['filme', 'muzica', 'carti'].forEach(c => {
                 const btn = document.getElementById(`btn-${c}`);
                 if (c === cat) {
@@ -233,7 +211,6 @@
                 }
             });
 
-            // Ajustări dinamice etichete formular și tabel în funcție de specificul categoriei
             const titleEl = document.getElementById('table-title');
             const thArtTit = document.getElementById('th-art-tit');
             const thDetalii = document.getElementById('th-detalii');
@@ -247,7 +224,7 @@
                 thArtTit.textContent = "Titlu Film";
                 thDetalii.textContent = "Gen / Categorie";
                 fieldAutor.classList.add('hidden');
-                fieldImdb.classList.remove('hidden'); // Arată caseta IMDB
+                fieldImdb.classList.remove('hidden');
                 lblTitlu.textContent = "Titlu Film";
                 lblDetalii.textContent = "Gen / Format";
             } else if (cat === 'muzica') {
@@ -255,7 +232,7 @@
                 thArtTit.textContent = "Artist / Melodie";
                 thDetalii.textContent = "Gen / Album";
                 fieldAutor.classList.remove('hidden');
-                fieldImdb.classList.add('hidden'); // Ascunde IMDB
+                fieldImdb.classList.add('hidden');
                 lblTitlu.textContent = "Titlu Melodie";
                 lblAutor.textContent = "Artist / Trupă";
                 lblDetalii.textContent = "Gen / Detalii fișier";
@@ -264,13 +241,12 @@
                 thArtTit.textContent = "Autor / Titlu Carte";
                 thDetalii.textContent = "Domeniu / Extensie";
                 fieldAutor.classList.remove('hidden');
-                fieldImdb.classList.add('hidden'); // Ascunde IMDB
+                fieldImdb.classList.add('hidden');
                 lblTitlu.textContent = "Titlu Document / Carte";
                 lblAutor.textContent = "Autor / Emitent";
                 lblDetalii.textContent = "Domeniu / Tip Fișier (PDF/Word)";
             }
 
-            resetForm();
             renderTable();
         }
 
@@ -283,7 +259,6 @@
             let filteredCount = 0;
 
             list.forEach((item, index) => {
-                // Filtru căutare globală
                 const matchCod = item.cod.toLowerCase().includes(searchVal);
                 const matchTitlu = item.titlu.toLowerCase().includes(searchVal);
                 const matchDetalii = item.detalii ? item.detalii.toLowerCase().includes(searchVal) : false;
@@ -294,13 +269,13 @@
                     const tr = document.createElement('tr');
                     tr.className = "hover:bg-gray-750/50 transition border-b border-gray-700/50";
 
-                    // Coloana Cod
+                    // Cod
                     const tdCod = document.createElement('td');
                     tdCod.className = "p-3 font-mono text-xs text-blue-400 font-medium";
                     tdCod.textContent = item.cod;
                     tr.appendChild(tdCod);
 
-                    // Coloana Titlu / Autor
+                    // Titlu
                     const tdTitlu = document.createElement('td');
                     tdTitlu.className = "p-3";
                     if (currentCategory === 'filme') {
@@ -310,10 +285,9 @@
                     }
                     tr.appendChild(tdTitlu);
 
-                    // Coloana Detalii + Butonul IMDB (dacă e film)
+                    // Detalii + IMDB
                     const tdDetalii = document.createElement('td');
                     tdDetalii.className = "p-3 text-gray-400 text-xs";
-                    
                     if (currentCategory === 'filme') {
                         const hasImdb = item.imdb && item.imdb.trim() !== "";
                         const imdbBtnClass = hasImdb ? 'imdb-btn-active' : 'imdb-btn-inactive';
@@ -332,11 +306,10 @@
                     }
                     tr.appendChild(tdDetalii);
 
-                    // Coloana Acțiuni (Editare/Ștergere securizată)
-                    const tdActiuni = document.createElement('td');
-                    tdActiuni.className = "p-3 text-center whitespace-nowrap space-x-2";
-                    
-                    if (currentRole === 'edit') {
+                    // Actiuni (Doar in mod Admin)
+                    if (isAdmin) {
+                        const tdActiuni = document.createElement('td');
+                        tdActiuni.className = "p-3 text-center whitespace-nowrap space-x-2";
                         tdActiuni.innerHTML = `
                             <button onclick="editElement('${index}')" class="p-1.5 text-blue-400 hover:text-blue-300 hover:bg-gray-700 rounded-lg transition" title="Editează">
                                 <i class="fa-solid fa-pen-to-square"></i>
@@ -345,10 +318,8 @@
                                 <i class="fa-solid fa-trash-can"></i>
                             </button>
                         `;
-                    } else {
-                        tdActiuni.innerHTML = `<span class="text-xs text-gray-500 italic"><i class="fa-solid fa-lock mr-1"></i>Protejat</span>`;
+                        tr.appendChild(tdActiuni);
                     }
-                    tr.appendChild(tdActiuni);
 
                     tbody.appendChild(tr);
                 }
@@ -357,9 +328,19 @@
             document.getElementById('item-count').textContent = `${filteredCount} elemente`;
         }
 
+        // Management Modal (Fereastră plutitoare)
+        function openModal() {
+            document.getElementById('form-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('form-modal').classList.add('hidden');
+            resetForm();
+        }
+
         function saveElement(event) {
             event.preventDefault();
-            if (currentRole !== 'edit') return;
+            if (!isAdmin) return;
 
             const id = document.getElementById('edit-id').value;
             const cod = document.getElementById('form-cod').value.trim();
@@ -375,25 +356,22 @@
             }
 
             if (id === "") {
-                // Adăugare element nou
-                // Verificare sumară dublură cod
                 if (database[currentCategory].some(x => x.cod.toLowerCase() === cod.toLowerCase())) {
                     alert("Atenție! Acest cod de identificare există deja în sistem.");
                     return;
                 }
                 database[currentCategory].push(item);
             } else {
-                // Actualizare element existent
                 database[currentCategory][parseInt(id)] = item;
             }
 
             localStorage.setItem('idbdc_media_db', JSON.stringify(database));
-            resetForm();
+            closeModal();
             renderTable();
         }
 
         function editElement(index) {
-            if (currentRole !== 'edit') return;
+            if (!isAdmin) return;
             const idx = parseInt(index);
             const item = database[currentCategory][idx];
 
@@ -409,11 +387,12 @@
             }
 
             document.getElementById('form-title').innerHTML = `<i class="fa-solid fa-pen-to-square text-blue-500 mr-1.5"></i> Editează Elementul`;
+            openModal();
         }
 
         function deleteElement(index) {
-            if (currentRole !== 'edit') return;
-            if (confirm("Sigur doriți să ștergeți definitiv acest element din baza de date?")) {
+            if (!isAdmin) return;
+            if (confirm("Sigur doriți să ștergeți definitiv acest element?")) {
                 database[currentCategory].splice(parseInt(index), 1);
                 localStorage.setItem('idbdc_media_db', JSON.stringify(database));
                 renderTable();
@@ -425,6 +404,9 @@
             document.getElementById('edit-id').value = "";
             document.getElementById('form-title').innerHTML = `<i class="fa-solid fa-plus-circle text-green-500 mr-1.5"></i> Adaugă Element Nou`;
         }
+
+        // Pornire tabel inițial la încărcare
+        renderTable();
     </script>
 </body>
 </html>
