@@ -48,7 +48,7 @@
             </h2>
             
             <form id="search-form" onsubmit="handleSearch(event)" class="space-y-4">
-                <div id="filters-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div id="filters-container" class="flex flex-col md:flex-row md:items-end gap-4 w-full">
                     </div>
 
                 <div class="flex items-center gap-3 pt-2">
@@ -88,11 +88,8 @@
         const ADMIN_PASSWORD = "bra$ov4";
         let isAdmin = false; 
         let currentCategory = 'filme';
-        
-        // Obiect global de căutare activă
         let activeFilters = {};
 
-        // Baza de date extinsă pentru a simula noile tale caracteristici stabilite punctual
         let database = { 
             filme: [
                 { cod: "F001", titlu: "The Shawshank Redemption", tip: "Film", status: "Vizionat", detalii: "Drama", actori: "Tim Robbins, Morgan Freeman", imdb: "https://www.imdb.com/title/tt0111161/" },
@@ -115,7 +112,6 @@
             localStorage.setItem('biblioteca_media_db', JSON.stringify(database));
         }
 
-        // Inițializare filtre goale
         function resetFiltersObject() {
             activeFilters = { tip: "Toate", status: "Toate", text1: "", text2: "" };
         }
@@ -123,7 +119,6 @@
         function switchCategory(cat) {
             currentCategory = cat;
             
-            // Stilizare butoane categorii
             ['filme', 'muzica', 'carti'].forEach(c => {
                 const btn = document.getElementById(`btn-${c}`);
                 if (c === cat) {
@@ -139,87 +134,85 @@
             renderTable();
         }
 
-        // Construirea dinamică a Secțiunii 2 (Căutare) conform indicațiilor exacte
+        // Construirea dinamică a Secțiunii 2 conform noilor proporții de lățime cerute
         function buildFiltersUI() {
             const container = document.getElementById('filters-container');
             container.innerHTML = '';
 
             if (currentCategory === 'filme') {
                 container.innerHTML = `
-                    <div class="flex flex-col">
+                    <div class="flex flex-col shrink-0 min-w-[140px]">
                         <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tip Conținut</label>
-                        <select id="filter-tip" class="max-w-xs px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
+                        <select id="filter-tip" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
                             <option value="Toate">Toate</option>
                             <option value="Film">Film</option>
                             <option value="Serial">Serial</option>
                         </select>
                     </div>
-                    <div class="flex flex-col">
+                    <div class="flex flex-col shrink-0 min-w-[150px]">
                         <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Status vizionare</label>
-                        <select id="filter-status" class="max-w-xs px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
+                        <select id="filter-status" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
                             <option value="Toate">Toate</option>
                             <option value="Vizionat">Vizionat</option>
                             <option value="De vizionat">De vizionat</option>
                             <option value="In asteptare">In asteptare</option>
                         </select>
                     </div>
-                    <div class="flex flex-col">
+                    <div class="flex flex-col flex-1">
                         <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Caută după Actor</label>
-                        <input type="text" id="filter-text1" placeholder="Scrie actor..." class="max-w-xs px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500">
+                        <input type="text" id="filter-text1" placeholder="Scrie actor..." class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500">
                     </div>
-                    <div class="flex flex-col">
+                    <div class="flex flex-col flex-1">
                         <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Caută după Titlu</label>
-                        <input type="text" id="filter-text2" placeholder="Scrie titlu..." class="max-w-xs px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500">
+                        <input type="text" id="filter-text2" placeholder="Scrie titlu..." class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500">
                     </div>
                 `;
             } else if (currentCategory === 'muzica') {
                 container.innerHTML = `
-                    <div class="flex flex-col">
+                    <div class="flex flex-col shrink-0 min-w-[140px]">
                         <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tip Lansare</label>
-                        <select id="filter-tip" class="max-w-xs px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
+                        <select id="filter-tip" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
                             <option value="Toate">Toate</option>
                             <option value="Album">Album</option>
                             <option value="Single">Single</option>
                         </select>
                     </div>
-                    <div class="flex flex-col">
+                    <div class="flex flex-col flex-1">
                         <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Caută după Artist/Trupă</label>
-                        <input type="text" id="filter-text1" placeholder="Scrie artist..." class="max-w-xs px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500">
+                        <input type="text" id="filter-text1" placeholder="Scrie artist..." class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500">
                     </div>
-                    <div class="flex flex-col">
+                    <div class="flex flex-col flex-1">
                         <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Caută după Titlu</label>
-                        <input type="text" id="filter-text2" placeholder="Scrie titlu..." class="max-w-xs px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500">
+                        <input type="text" id="filter-text2" placeholder="Scrie titlu..." class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500">
                     </div>
                 `;
             } else if (currentCategory === 'carti') {
                 container.innerHTML = `
-                    <div class="flex flex-col">
+                    <div class="flex flex-col shrink-0 min-w-[140px]">
                         <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tip Format</label>
-                        <select id="filter-tip" class="max-w-xs px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
+                        <select id="filter-tip" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
                             <option value="Toate">Toate</option>
                             <option value="Tiparit">Tiparit</option>
                             <option value="Electronic">Electronic</option>
                         </select>
                     </div>
-                    <div class="flex flex-col">
+                    <div class="flex flex-col flex-1">
                         <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Caută după Autor</label>
-                        <input type="text" id="filter-text1" placeholder="Scrie autor..." class="max-w-xs px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500">
+                        <input type="text" id="filter-text1" placeholder="Scrie autor..." class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500">
                     </div>
-                    <div class="flex flex-col">
+                    <div class="flex flex-col flex-1">
                         <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Caută după Titlu</label>
-                        <input type="text" id="filter-text2" placeholder="Scrie titlu..." class="max-w-xs px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500">
+                        <input type="text" id="filter-text2" placeholder="Scrie titlu..." class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500">
                     </div>
                 `;
             }
 
-            // Aplică valorile salvate în obiect înapoi în elementele vizuale din formular
             if (document.getElementById('filter-tip')) document.getElementById('filter-tip').value = activeFilters.tip || "Toate";
             if (document.getElementById('filter-status')) document.getElementById('filter-status').value = activeFilters.status || "Toate";
             if (document.getElementById('filter-text1')) document.getElementById('filter-text1').value = activeFilters.text1 || "";
             if (document.getElementById('filter-text2')) document.getElementById('filter-text2').value = activeFilters.text2 || "";
         }
 
-        // Schimbarea dinamică a coloanelor tabelului în funcție de categorie (fără coloana Imagine)
         function buildTableHeaderUI() {
             const headerRow = document.getElementById('table-header-row');
             if (currentCategory === 'filme') {
@@ -253,7 +246,6 @@
 
         function handleSearch(event) {
             event.preventDefault();
-            // Extrage valorile din interfață și le salvează în obiectul activ
             if (document.getElementById('filter-tip')) activeFilters.tip = document.getElementById('filter-tip').value;
             if (document.getElementById('filter-status')) activeFilters.status = document.getElementById('filter-status').value;
             if (document.getElementById('filter-text1')) activeFilters.text1 = document.getElementById('filter-text1').value.trim().toLowerCase();
@@ -268,7 +260,6 @@
             renderTable();
         }
 
-        // SECȚIUNEA 3: Generarea rândurilor în tabel pe baza filtrelor aplicate
         function renderTable() {
             const tbody = document.getElementById('data-tbody');
             tbody.innerHTML = '';
@@ -277,17 +268,14 @@
             let counter = 0;
 
             list.forEach((item) => {
-                // Verificare Criteriu 1: Tip (Film/Serial, Album/Single, Tiparit/Electronic)
                 if (activeFilters.tip && activeFilters.tip !== "Toate") {
                     if (item.tip !== activeFilters.tip) return;
                 }
 
-                // Verificare Criteriu 2: Status (doar pentru filme)
                 if (currentCategory === 'filme' && activeFilters.status && activeFilters.status !== "Toate") {
                     if (item.status !== activeFilters.status) return;
                 }
 
-                // Verificare Criteriu 3: Caseta Text 1 (Actori la filme, Artist la muzică, Autor la cărți)
                 if (activeFilters.text1) {
                     if (currentCategory === 'filme') {
                         const actori = item.actori ? item.actori.toLowerCase() : "";
@@ -298,13 +286,11 @@
                     }
                 }
 
-                // Verificare Criteriu 4: Caseta Text 2 (Titlu universal)
                 if (activeFilters.text2) {
                     const titlu = item.titlu ? item.titlu.toLowerCase() : "";
                     if (!titlu.includes(activeFilters.text2)) return;
                 }
 
-                // Dacă a trecut de toate filtrele, se construiește rândul în tabel
                 counter++;
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-gray-750/40 transition border-b border-gray-700/40";
@@ -351,7 +337,6 @@
             document.getElementById('item-count').textContent = `${counter} elemente identificate`;
         }
 
-        // Pregătire declanșare Admin
         function toggleAdminMode() {
             const pass = prompt("Introduceți parola de administrare:");
             if (pass === null) return;
@@ -362,7 +347,6 @@
             }
         }
 
-        // Pornire inițială pe categoria Filme
         resetFiltersObject();
         switchCategory('filme');
     </script>
