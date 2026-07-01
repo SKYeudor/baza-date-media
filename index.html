@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BIBLIOTECA MEDIA</title>
+    <!-- Tailwind CSS pentru design modern -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- FontAwesome pentru pictograme -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .imdb-btn-active { background-color: #f5c518; color: #000000; }
@@ -16,6 +18,7 @@
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen font-sans">
 
+    <!-- SECȚIUNEA 1: ANTET (HEADER) -->
     <header class="bg-gray-800 border-b border-gray-700 sticky top-0 z-50 shadow-md">
         <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div class="flex items-center gap-3">
@@ -48,6 +51,7 @@
 
     <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
 
+        <!-- SECȚIUNEA 2: PANOU CĂUTARE -->
         <section class="bg-gray-800 rounded-2xl border border-gray-700 p-5 shadow-xl">
             <h2 class="text-md font-bold tracking-wide text-gray-300 uppercase mb-4 flex items-center gap-2">
                 <i class="fa-solid fa-sliders text-blue-500 text-sm"></i> Căutare
@@ -55,7 +59,8 @@
             
             <form id="search-form" onsubmit="handleSearch(event)" class="space-y-4">
                 <div id="filters-container" class="flex flex-wrap items-end gap-4 w-full">
-                    </div>
+                    <!-- Dinamic din JS -->
+                </div>
 
                 <div class="flex items-center gap-3 pt-2">
                     <button type="submit" class="px-5 py-2 bg-slate-700 hover:bg-slate-600 border border-slate-600 text-white font-bold text-sm rounded-lg transition shadow-md">
@@ -68,6 +73,7 @@
             </form>
         </section>
 
+        <!-- SECȚIUNEA 3: REZULTATE -->
         <section class="bg-gray-800 rounded-2xl border border-gray-700 p-5 shadow-xl flex flex-col">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-md font-bold tracking-wide text-gray-300 uppercase flex items-center gap-2">
@@ -80,16 +86,19 @@
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr id="table-header-row" class="bg-gray-750 border-b border-gray-700 text-gray-300 text-xs font-bold uppercase tracking-wider">
-                            </tr>
+                            <!-- Dinamic din JS -->
+                        </tr>
                     </thead>
                     <tbody id="data-tbody" class="text-sm divide-y divide-gray-700/60 text-gray-300">
-                        </tbody>
+                        <!-- Dinamic din JS -->
+                    </tbody>
                 </table>
             </div>
         </section>
 
     </main>
 
+    <!-- FEREASTRA MODALĂ: INSERARE CARACTERISTICI + VĂRSARE RAPIDĂ -->
     <div id="crud-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden overflow-y-auto">
         <div class="bg-gray-800 border border-gray-700 rounded-2xl w-full max-w-4xl p-6 shadow-2xl relative my-auto">
             <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white transition text-xl">
@@ -108,20 +117,22 @@
                 
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
                     <div id="dynamic-form-fields" class="lg:col-span-2 space-y-4">
-                        </div>
+                        <!-- Generat din JS -->
+                    </div>
 
                     <div class="flex flex-col items-center justify-start border-l border-gray-700/50 lg:pl-6 pt-4 lg:pt-0 sticky top-0">
                         <label id="form-image-label" class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Imagine</label>
-                        <div id="image-wrapper" class="flex items-center justify-center bg-gray-900 border-2 border-dashed border-gray-600 rounded-xl overflow-hidden shadow-inner p-1.5 transition-all duration-200">
-                            <div id="image-preview-container" class="w-full h-full flex flex-col items-center justify-center text-center p-1">
+                        <div id="image-wrapper" class="flex items-center justify-center bg-gray-900 border-2 border-dashed border-gray-600 rounded-xl overflow-hidden shadow-inner p-1.5 transition-all duration-200" style="width: 160px; height: 225px;">
+                            <div id="image-preview-container" class="w-full h-full flex flex-col items-center justify-center text-center p-0 relative">
                                 <i id="image-placeholder-icon" class="fa-regular fa-image text-2xl text-gray-600 mb-1"></i>
                                 <span id="image-placeholder-text" class="text-[10px] text-gray-500">Fără imagine</span>
-                                <img id="image-preview-element" class="hidden w-full h-full object-cover rounded-md" src="" alt="Preview">
+                                <img id="image-preview-element" class="hidden absolute inset-0 w-full h-full object-cover rounded-md" src="" alt="Preview">
                             </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- SECTIUNE DE IMPORT RAPID DIN EXCEL -->
                 <div id="excel-import-zone" class="hidden mt-6 pt-4 border-t border-gray-700/60 bg-gray-900/40 p-4 rounded-xl border border-gray-700">
                     <h3 class="text-xs font-bold text-blue-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                         <i class="fa-solid fa-file-import"></i> Caseta de Vărsare Date Excel (Filme & Seriale)
@@ -156,6 +167,7 @@
         </div>
     </div>
 
+    <!-- LOGICĂ OPERAȚIONALĂ -->
     <script>
         const ADMIN_PASSWORD = "bra$ov4";
         let isAdmin = false; 
@@ -490,7 +502,7 @@
                     status: statusGlobal,
                     gen: gen,
                     an: anGlobal,
-                    regizor: "-", // implicit rămâne curat, gata de editat ulterior în panou
+                    regizor: "-", 
                     durata: durata,
                     actori: actori,
                     imdb: imdb,
@@ -503,7 +515,7 @@
 
             if (elementeAdaugate > 0) {
                 localStorage.setItem('biblioteca_media_db', JSON.stringify(database));
-                buildFiltersUI(); // Reîmprospătăm filtrele pentru a include noul an dacă e cazul
+                buildFiltersUI(); 
                 renderTable();
                 document.getElementById('excel-paste-area').value = ""; 
                 closeModal();
@@ -654,9 +666,15 @@
             const text = document.getElementById('image-placeholder-text');
             const img = document.getElementById('image-preview-element');
             if (url && url.trim() !== "" && url.toLowerCase().startsWith('http')) {
-                img.src = url; img.classList.remove('hidden'); icon.classList.add('hidden'); text.classList.add('hidden');
+                img.src = url; 
+                img.classList.remove('hidden'); 
+                icon.classList.add('hidden'); 
+                text.classList.add('hidden');
             } else {
-                img.src = ""; img.classList.add('hidden'); icon.classList.remove('hidden'); text.classList.remove('hidden');
+                img.src = ""; 
+                img.classList.add('hidden'); 
+                icon.classList.remove('hidden'); 
+                text.classList.remove('hidden');
             }
         }
 
