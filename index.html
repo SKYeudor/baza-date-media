@@ -126,7 +126,8 @@
                             <div id="image-preview-container" class="w-full h-full flex flex-col items-center justify-center text-center p-0 relative">
                                 <i id="image-placeholder-icon" class="fa-regular fa-image text-2xl text-gray-600 mb-1"></i>
                                 <span id="image-placeholder-text" class="text-[10px] text-gray-500">Fără imagine</span>
-                                <img id="image-preview-element" class="hidden absolute inset-0 w-full h-full object-cover rounded-md" src="" alt="Preview">
+                                <!-- Adăugat referrerpolicy="no-referrer" pentru a trece de blocajele serverelor externe -->
+                                <img id="image-preview-element" referrerpolicy="no-referrer" class="hidden absolute inset-0 w-full h-full object-cover rounded-md" src="" alt="Preview">
                             </div>
                         </div>
                     </div>
@@ -174,9 +175,8 @@
         let currentCategory = 'filme';
         let activeFilters = {};
         
-        // Starea sortării curente
         let currentSortKey = 'titlu';
-        let currentSortOrder = 'asc'; // 'asc' sau 'desc'
+        let currentSortOrder = 'asc'; 
 
         let database = { filme: [], muzica: [], carti: [] };
 
@@ -203,7 +203,6 @@
                 }
             });
 
-            // Resetăm sortarea implicită la schimbarea categoriei
             currentSortKey = 'titlu';
             currentSortOrder = 'asc';
 
@@ -213,7 +212,6 @@
             renderTable();
         }
 
-        // Extrage dinamic toți anii unici existenți în DB pentru dropdown
         function getUniqueYearsFromDB() {
             const aniSet = new Set();
             database.filme.forEach(f => {
@@ -221,7 +219,7 @@
                     aniSet.add(f.an.trim());
                 }
             });
-            return Array.from(aniSet).sort((a, b) => b - a); // Sortat descrescător
+            return Array.from(aniSet).sort((a, b) => b - a); 
         }
 
         function buildFiltersUI() {
@@ -298,7 +296,6 @@
             if (document.getElementById('filter-text2')) document.getElementById('filter-text2').value = activeFilters.text2 || "";
         }
 
-        // Returnează simbolul grafic pentru sortarea activă
         function getSortIndicator(key) {
             if (currentSortKey !== key) return '<span class="text-gray-600 ml-1 text-[10px]">▲▼</span>';
             return currentSortOrder === 'asc' ? '<span class="text-blue-400 ml-1">▲</span>' : '<span class="text-blue-400 ml-1">▼</span>';
@@ -330,7 +327,6 @@
             }
         }
 
-        // Schimbă coloana de sortare sau inversează direcția
         function handleHeaderSort(key) {
             if (currentSortKey === key) {
                 currentSortOrder = currentSortOrder === 'asc' ? 'desc' : 'asc';
@@ -364,7 +360,6 @@
 
             let list = [...(database[currentCategory] || [])];
             
-            // 1. Aplicăm filtrarea primară pe setul de date
             let filteredList = list.filter((item) => {
                 if (activeFilters.tip && activeFilters.tip !== "Toate" && item.tip !== activeFilters.tip) return false;
                 if (currentCategory === 'filme') {
@@ -389,27 +384,22 @@
                 return true;
             });
 
-            // 2. Aplicăm algoritmul flexibil de sortare (A-Z / Z-A sau Mic-Mare)
             filteredList.sort((a, b) => {
                 let valA = a[currentSortKey] ? a[currentSortKey].toString().trim() : "";
                 let valB = b[currentSortKey] ? b[currentSortKey].toString().trim() : "";
 
-                // Dacă sortăm după Durată, convertim în număr pur pentru o ordine corectă din punct de vedere matematic
                 if (currentSortKey === 'durata') {
                     let numA = parseInt(valA) || 0;
                     let numB = parseInt(valB) || 0;
                     return currentSortOrder === 'asc' ? numA - numB : numB - numA;
                 }
 
-                // Pentru câmpurile text, folosim compararea alfabetică regională (localeCompare)
                 return currentSortOrder === 'asc' 
                     ? valA.localeCompare(valB, 'ro', { sensitivity: 'base' })
                     : valB.localeCompare(valA, 'ro', { sensitivity: 'base' });
             });
 
-            // 3. Generăm rândurile în tabel în noua structură curată
             filteredList.forEach((item) => {
-                // Pentru a păstra posibilitatea de editare corectă, găsim indexul original din baza de date reală
                 const originalIndex = database[currentCategory].findIndex(x => x.cod === item.cod);
                 
                 const tr = document.createElement('tr');
@@ -481,7 +471,6 @@
             linii.forEach(linie => {
                 if (!linie.trim()) return;
                 
-                // Structură nouă fixă ordonată: A-Titlu, B-Distribuție, C-Gen, D-Durată, E-IMDB
                 const coloane = linie.split('\t');
                 
                 let titlu = coloane[0] ? coloane[0].trim() : "";
