@@ -4,86 +4,80 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BIBLIOTECA MEDIA</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        .imdb-btn-active { background-color: #f5c518; color: #000000; }
-        .imdb-btn-active:hover { background-color: #e2b616; }
-        .imdb-btn-inactive { background-color: #374151; color: #9ca3af; cursor: not-allowed; }
-        th.sortable { cursor: pointer; user-select: none; }
-        th.sortable:hover { background-color: #374151; color: #ffffff; }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-gray-900 text-gray-100 min-h-screen font-sans antialiased">
+<body class="bg-gray-900 text-gray-100 min-h-screen font-sans">
 
     <header class="bg-gray-800 border-b border-gray-700 sticky top-0 z-50 shadow-md">
-        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div class="flex items-center gap-3">
-                <i class="fa-solid fa-photo-film text-blue-500 text-xl"></i>
-                <h1 class="text-lg font-bold tracking-wider text-white uppercase">BIBLIOTECA MEDIA</h1>
-                <span id="admin-badge" class="hidden px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-green-900 text-green-300 border border-green-700 animate-pulse">ADMIN</span>
+                <i class="fa-solid fa-photo-film text-blue-500 text-2xl"></i>
+                <h1 class="text-xl font-bold tracking-wider text-white uppercase">BIBLIOTECA MEDIA</h1>
+                <span id="admin-badge" class="hidden px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-900 text-green-300 border border-green-700 animate-pulse">ADMIN</span>
             </div>
             <div class="flex items-center gap-2">
-                <button id="add-new-btn" onclick="openModal('add')" class="hidden px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded-lg transition shadow-md whitespace-nowrap">
-                    <i class="fa-solid fa-plus mr-1"></i> Inserare caracteristici
+                <button id="add-new-btn" onclick="openModal('add')" class="hidden px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-xl transition shadow-lg shadow-green-950/30 whitespace-nowrap">
+                    <i class="fa-solid fa-plus mr-1.5"></i> Inserare caracteristici
                 </button>
-                <button id="admin-toggle-btn" onclick="toggleAdminMode()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition shadow-md whitespace-nowrap">
-                    <i class="fa-solid fa-lock-open mr-1"></i> Actualizare date
+                <button id="admin-toggle-btn" onclick="toggleAdminMode()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition shadow-lg shadow-blue-950/30 whitespace-nowrap">
+                    <i class="fa-solid fa-lock-open mr-1.5"></i> Actualizare date
                 </button>
             </div>
         </div>
         
-        <div class="max-w-7xl mx-auto px-4 pb-2.5 flex gap-2 overflow-x-auto">
-            <button onclick="switchCategory('filme')" id="btn-filme" class="px-4 py-1.5 rounded-lg text-xs font-bold uppercase transition whitespace-nowrap bg-blue-600 text-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 pb-3 flex gap-2 overflow-x-auto">
+            <button onclick="switchCategory('filme')" id="btn-filme" class="px-5 py-2 rounded-lg text-sm font-bold uppercase transition whitespace-nowrap bg-blue-600 text-white shadow-md">
                 Filme & Seriale
             </button>
-            <button onclick="switchCategory('muzica')" id="btn-muzica" class="px-4 py-1.5 rounded-lg text-xs font-bold uppercase transition whitespace-nowrap bg-gray-700 text-gray-400 hover:bg-gray-600 hover:text-white">
+            <button onclick="switchCategory('muzica')" id="btn-muzica" class="px-5 py-2 rounded-lg text-sm font-bold uppercase transition whitespace-nowrap bg-gray-750 text-gray-400 hover:bg-gray-700">
                 Muzica
             </button>
-            <button onclick="switchCategory('carti')" id="btn-carti" class="px-4 py-1.5 rounded-lg text-xs font-bold uppercase transition whitespace-nowrap bg-gray-700 text-gray-400 hover:bg-gray-600 hover:text-white">
+            <button onclick="switchCategory('carti')" id="btn-carti" class="px-5 py-2 rounded-lg text-sm font-bold uppercase transition whitespace-nowrap bg-gray-750 text-gray-400 hover:bg-gray-700">
                 Carti
             </button>
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 py-4 space-y-4">
+    <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
 
-        <section class="bg-gray-800 rounded-xl border border-gray-700 p-4 shadow-lg">
-            <h2 class="text-xs font-bold tracking-wide text-gray-400 uppercase mb-3 flex items-center gap-2">
-                <i class="fa-solid fa-sliders text-blue-500"></i> Căutare și Filtrare
+        <section class="bg-gray-800 rounded-2xl border border-gray-700 p-5 shadow-xl">
+            <h2 class="text-md font-bold tracking-wide text-gray-300 uppercase mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-sliders text-blue-500 text-sm"></i> Căutare
             </h2>
             
-            <form id="search-form" onsubmit="handleSearch(event)" class="space-y-3">
-                <div id="filters-container" class="flex flex-wrap items-end gap-3 w-full">
-                    </div>
+            <form id="search-form" onsubmit="handleSearch(event)" class="space-y-4">
+                <div id="filters-container" class="flex flex-wrap items-end gap-4 w-full">
+                </div>
 
-                <div class="flex items-center gap-2 pt-1">
-                    <button type="submit" class="px-4 py-1.5 bg-slate-700 hover:bg-slate-600 border border-slate-600 text-white font-bold text-xs rounded-lg transition shadow-sm">
+                <div class="flex items-center gap-3 pt-2">
+                    <button type="submit" class="px-5 py-2 bg-slate-700 hover:bg-slate-600 border border-slate-600 text-white font-bold text-sm rounded-lg transition shadow-md">
                         Lansează Căutarea
                     </button>
-                    <button type="button" onclick="resetCriteria()" class="px-4 py-1.5 bg-gray-600 hover:bg-gray-500 border border-gray-500 text-gray-200 font-bold text-xs rounded-lg transition">
+                    <button type="button" onclick="resetCriteria()" class="px-5 py-2 bg-gray-600 hover:bg-gray-500 border border-gray-500 text-gray-200 font-bold text-sm rounded-lg transition">
                         Resetează Criterii
                     </button>
                 </div>
             </form>
         </section>
 
-        <section class="bg-gray-800 rounded-xl border border-gray-700 p-4 shadow-lg flex flex-col">
-            <div class="flex items-center justify-between mb-3">
-                <h2 class="text-xs font-bold tracking-wide text-gray-400 uppercase flex items-center gap-2">
-                    <i class="fa-solid fa-list-ul text-blue-500"></i> Rezultate Catalog
+        <section class="bg-gray-800 rounded-2xl border border-gray-700 p-5 shadow-xl flex flex-col">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-md font-bold tracking-wide text-gray-300 uppercase flex items-center gap-2">
+                    <i class="fa-solid fa-list-ul text-blue-500 text-sm"></i> Rezultate
                 </h2>
-                <span id="item-count" class="text-[11px] bg-gray-900 text-blue-400 px-2.5 py-0.5 rounded border border-gray-700 font-mono font-bold">0 elemente</span>
+                <span id="item-count" class="text-xs bg-gray-700 text-gray-300 px-2.5 py-1 rounded-md font-mono font-bold">0 elemente identificate</span>
             </div>
             
-            <div class="overflow-x-auto rounded-lg border border-gray-700 bg-gray-900">
-                <table class="w-full text-left border-collapse table-auto">
+            <div class="overflow-x-auto rounded-xl border border-gray-700">
+                <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr id="table-header-row" class="bg-gray-700/50 border-b border-gray-700 text-gray-300 text-[11px] font-bold uppercase tracking-wider">
-                            </tr>
+                        <tr id="table-header-row" class="bg-gray-750 border-b border-gray-700 text-gray-300 text-xs font-bold uppercase tracking-wider">
+                        </tr>
                     </thead>
-                    <tbody id="data-tbody" class="text-xs divide-y divide-gray-800 text-gray-300 bg-gray-900/50">
-                        </tbody>
+                    <tbody id="data-tbody" class="text-sm divide-y divide-gray-700/60 text-gray-300">
+                    </tbody>
                 </table>
             </div>
         </section>
@@ -91,63 +85,63 @@
     </main>
 
     <div id="crud-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden overflow-y-auto">
-        <div class="bg-gray-800 border border-gray-700 rounded-xl w-full max-w-4xl p-5 shadow-2xl relative my-auto">
-            <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white transition text-lg">
+        <div class="bg-gray-800 border border-gray-700 rounded-2xl w-full max-w-4xl p-6 shadow-2xl relative my-auto">
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white transition text-xl">
                 <i class="fa-solid fa-xmark"></i>
             </button>
 
-            <div class="flex items-center justify-between border-b border-gray-700 pb-2 mb-4">
-                <h2 class="text-sm font-bold text-white tracking-wide uppercase flex items-center gap-2">
+            <div class="flex items-center justify-between border-b border-gray-700 pb-3 mb-5">
+                <h2 class="text-lg font-bold text-white tracking-wide uppercase flex items-center gap-2">
                     <i class="fa-solid fa-square-poll-horizontal text-blue-500"></i> Inserare caracteristici
                 </h2>
-                <span id="modal-category-badge" class="text-[9px] bg-blue-900/50 text-blue-300 px-2 py-0.5 rounded border border-blue-800 uppercase font-bold tracking-widest">CATEGORIE</span>
+                <span id="modal-category-badge" class="text-[10px] bg-blue-900/50 text-blue-300 px-2 py-0.5 rounded border border-blue-800 uppercase font-bold tracking-widest">CATEGORIE</span>
             </div>
 
             <form id="crud-form" onsubmit="saveElement(event)">
                 <input type="hidden" id="form-edit-index">
                 
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
-                    <div id="dynamic-form-fields" class="lg:col-span-2 space-y-3">
-                        </div>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+                    <div id="dynamic-form-fields" class="lg:col-span-2 space-y-4">
+                    </div>
 
-                    <div class="flex flex-col items-center justify-start border-l border-gray-700/50 lg:pl-5 pt-3 lg:pt-0 sticky top-0">
-                        <label id="form-image-label" class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">Imagine</label>
-                        <div id="image-wrapper" class="flex items-center justify-center bg-black border-2 border-dashed border-gray-700 rounded-lg overflow-hidden shadow-inner p-1 transition-all duration-200" style="width: 140px; height: 195px;">
-                            <div id="image-preview-container" class="w-full h-full flex flex-col items-center justify-center text-center relative">
-                                <i id="image-placeholder-icon" class="fa-regular fa-image text-xl text-gray-600 mb-1"></i>
+                    <div class="flex flex-col items-center justify-start border-l border-gray-700/50 lg:pl-6 pt-4 lg:pt-0 sticky top-0">
+                        <label id="form-image-label" class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Imagine</label>
+                        <div id="image-wrapper" class="flex items-center justify-center bg-gray-900 border-2 border-dashed border-gray-600 rounded-xl overflow-hidden shadow-inner p-1.5 transition-all duration-200" style="width: 160px; height: 225px;">
+                            <div id="image-preview-container" class="w-full h-full flex flex-col items-center justify-center text-center p-0 relative">
+                                <i id="image-placeholder-icon" class="fa-regular fa-image text-2xl text-gray-600 mb-1"></i>
                                 <span id="image-placeholder-text" class="text-[10px] text-gray-500">Fără imagine</span>
-                                <img id="image-preview-element" class="hidden absolute inset-0 w-full h-full object-cover rounded" src="" alt="Preview">
+                                <img id="image-preview-element" class="hidden absolute inset-0 w-full h-full object-cover rounded-md" src="" alt="Preview">
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div id="excel-import-zone" class="hidden mt-4 pt-3 border-t border-gray-700/60 bg-black/40 p-3 rounded-lg border border-gray-700">
-                    <h3 class="text-[11px] font-bold text-blue-400 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                        <i class="fa-solid fa-file-import"></i> Caseta de Vărsare Data Excel (Filme & Seriale)
+                <div id="excel-import-zone" class="hidden mt-6 pt-4 border-t border-gray-700/60 bg-gray-900/40 p-4 rounded-xl border border-gray-700">
+                    <h3 class="text-xs font-bold text-blue-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                        <i class="fa-solid fa-file-import"></i> Caseta de Vărsare Date Excel (Filme & Seriale)
                     </h3>
-                    <p class="text-[10px] text-gray-400 mb-2">
-                        Sistemul asociază automat datele cu <strong>Tipul</strong>, <strong>Statusul</strong> și <strong>Anul</strong> selectate mai sus. (Structură Excel: Col. A: Titlu, Col. B: Distribuție, Col. C: Gen, Col. D: Durată, Col. E: IMDB).
+                    <p class="text-[11px] text-gray-400 mb-2">
+                        Sistemul va asocia automat datele de mai jos cu <strong>Tipul</strong>, <strong>Statusul</strong> și <strong>Anul</strong> selectate de tine în casetele de mai sus. (Structură Excel obligatorie: Col. A: Titlu, Col. B: Distribuție, Col. C: Gen, Col. D: Durată, Col. E: IMDB).
                     </p>
-                    <textarea id="excel-paste-area" rows="2" placeholder="Lipește rândurile copiate din Excel aici..." class="w-full px-2.5 py-1.5 bg-gray-900 border border-gray-700 rounded-lg text-xs text-gray-300 font-mono focus:outline-none focus:border-blue-500 placeholder-gray-600"></textarea>
-                    <div class="mt-1.5 text-right">
-                        <button type="button" onclick="processExcelPaste()" class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] rounded transition shadow-sm">
+                    <textarea id="excel-paste-area" rows="3" placeholder="Lipeste tabel xlsx aici" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-xl text-xs text-gray-300 font-mono focus:outline-none focus:border-blue-500 placeholder-gray-600"></textarea>
+                    <div class="mt-2 text-right">
+                        <button type="button" onclick="processExcelPaste()" class="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg transition shadow-md">
                             <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Execută vărsarea datelor
                         </button>
                     </div>
                 </div>
 
-                <div class="border-t border-gray-700 mt-5 pt-3 flex flex-wrap items-center justify-between gap-2">
+                <div class="border-t border-gray-700 mt-6 pt-4 flex flex-wrap items-center justify-between gap-3">
                     <div>
-                        <button type="button" id="form-delete-btn" onclick="deleteCurrentElement()" class="hidden px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-lg transition shadow-sm">
+                        <button type="button" id="form-delete-btn" onclick="deleteCurrentElement()" class="hidden px-5 py-2 bg-red-650 hover:bg-red-700 text-white font-bold text-sm rounded-lg transition shadow-md">
                             Șterge
                         </button>
                     </div>
-                    <div class="flex items-center gap-2 ml-auto">
-                        <button type="button" onclick="resetFormFields()" class="px-4 py-1.5 bg-gray-600 hover:bg-gray-500 text-gray-200 font-bold text-xs rounded-lg transition">
+                    <div class="flex items-center gap-3 ml-auto">
+                        <button type="button" onclick="resetFormFields()" class="px-5 py-2 bg-gray-600 hover:bg-gray-500 text-gray-200 font-bold text-sm rounded-lg transition">
                             Resetează
                         </button>
-                        <button type="submit" class="px-5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg transition shadow-md">
+                        <button type="submit" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-lg transition shadow-lg shadow-blue-900/20">
                             Salvează
                         </button>
                     </div>
@@ -156,647 +150,6 @@
         </div>
     </div>
 
-    <script>
-        const ADMIN_PASSWORD = "bra$ov4";
-        let isAdmin = false; 
-        let currentCategory = 'filme';
-        let activeFilters = {};
-        
-        let currentSortKey = 'titlu';
-        let currentSortOrder = 'asc'; 
-
-        let database = { filme: [], muzica: [], carti: [] };
-
-        // MECANISM ROBUST DE SIGURANȚĂ ȘI MIGRARE DATE VECHI
-        try {
-            const cachedData = localStorage.getItem('biblioteca_media_db');
-            if (cachedData) {
-                const parsed = JSON.parse(cachedData);
-                if (parsed && typeof parsed === 'object') {
-                    if (Array.isArray(parsed)) {
-                        // Structură veche simplă detectată -> o mutăm automat în categoria filme
-                        database.filme = parsed;
-                    } else {
-                        // Structură nouă divizată pe chei
-                        if (Array.isArray(parsed.filme)) database.filme = parsed.filme;
-                        if (Array.isArray(parsed.muzica)) database.muzica = parsed.muzica;
-                        if (Array.isArray(parsed.carti)) database.carti = parsed.carti;
-                    }
-                }
-            }
-        } catch (e) {
-            console.error("Eroare la migrarea sau incarcarea memoriei cache:", e);
-        }
-
-        // Prevenire crash-uri prin garantarea existenței array-urilor
-        if (!Array.isArray(database.filme)) database.filme = [];
-        if (!Array.isArray(database.muzica)) database.muzica = [];
-        if (!Array.isArray(database.carti)) database.carti = [];
-
-        // Inițializare element demonstrativ doar dacă tot catalogul este complet gol
-        if (database.filme.length === 0 && database.muzica.length === 0 && database.carti.length === 0) {
-            database.filme.push({ cod: "F25-001", titlu: "Exemplu Catalog", tip: "Film", status: "Vizionat", gen: "Drama", an: "2025", regizor: "Regizor Test", durata: "120 min", actori: "Actor Exemplu", imdb: "https://www.imdb.com", url_img: "" });
-            localStorage.setItem('biblioteca_media_db', JSON.stringify(database));
-        }
-
-        function resetFiltersObject() {
-            activeFilters = { tip: "Toate", status: "Toate", an: "Toate", text1: "", text2: "" };
-        }
-
-        function switchCategory(cat) {
-            currentCategory = cat;
-            
-            ['filme', 'muzica', 'carti'].forEach(c => {
-                const btn = document.getElementById(`btn-${c}`);
-                if (btn) {
-                    if (c === cat) {
-                        btn.className = "px-4 py-1.5 rounded-lg text-xs font-bold uppercase transition whitespace-nowrap bg-blue-600 text-white shadow-md";
-                    } else {
-                        btn.className = "px-4 py-1.5 rounded-lg text-xs font-bold uppercase transition whitespace-nowrap bg-gray-700 text-gray-400 hover:bg-gray-600 hover:text-white";
-                    }
-                }
-            });
-
-            currentSortKey = 'titlu';
-            currentSortOrder = 'asc';
-
-            resetFiltersObject();
-            buildFiltersUI();
-            buildTableHeaderUI();
-            renderTable();
-        }
-
-        function getUniqueYearsFromDB() {
-            const aniSet = new Set();
-            const filmeList = database.filme || [];
-            filmeList.forEach(f => {
-                if (f && f.an && f.an !== "-") {
-                    aniSet.add(f.an.toString().trim());
-                }
-            });
-            return Array.from(aniSet).sort((a, b) => b - a); 
-        }
-
-        function buildFiltersUI() {
-            const container = document.getElementById('filters-container');
-            if (!container) return;
-            container.innerHTML = '';
-
-            if (currentCategory === 'filme') {
-                const aniUnici = getUniqueYearsFromDB();
-                let anOptionsHtml = '<option value="Toate">Toate</option>';
-                aniUnici.forEach(an => {
-                    anOptionsHtml += `<option value="${an}">${an}</option>`;
-                });
-
-                container.innerHTML = `
-                    <div class="flex flex-col shrink-0 min-w-[120px]">
-                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tip Conținut</label>
-                        <select id="filter-tip" class="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded-lg text-xs text-white focus:outline-none focus:border-blue-500">
-                            <option value="Toate">Toate</option>
-                            <option value="Film">Film</option>
-                            <option value="Serial">Serial</option>
-                        </select>
-                    </div>
-                    <div class="flex flex-col shrink-0 min-w-[130px]">
-                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Status vizionare</label>
-                        <select id="filter-status" class="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded-lg text-xs text-white focus:outline-none focus:border-blue-500">
-                            <option value="Toate">Toate</option>
-                            <option value="Vizionat">Vizionat</option>
-                            <option value="De vizionat">De vizionat</option>
-                            <option value="In asteptare">In asteptare</option>
-                        </select>
-                    </div>
-                    <div class="flex flex-col shrink-0 min-w-[100px]">
-                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">An lansare</label>
-                        <select id="filter-an" class="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded-lg text-xs text-white focus:outline-none focus:border-blue-500">
-                            ${anOptionsHtml}
-                        </select>
-                    </div>
-                    <div class="flex flex-col flex-1 min-w-[160px]">
-                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Caută după Actor</label>
-                        <input type="text" id="filter-text1" placeholder="Scrie actor..." class="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded-lg text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500">
-                    </div>
-                    <div class="flex flex-col flex-1 min-w-[160px]">
-                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Caută după Titlu</label>
-                        <input type="text" id="filter-text2" placeholder="Scrie titlu..." class="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded-lg text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500">
-                    </div>
-                `;
-            } else {
-                container.innerHTML = `
-                    <div class="flex flex-col shrink-0 min-w-[130px]">
-                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tip Format</label>
-                        <select id="filter-tip" class="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded-lg text-xs text-white focus:outline-none focus:border-blue-500">
-                            <option value="Toate">Toate</option>
-                            <option value="Album">Album</option>
-                            <option value="Single">Single</option>
-                            <option value="Tiparit">Tiparit</option>
-                            <option value="Electronic">Electronic</option>
-                        </select>
-                    </div>
-                    <div class="flex flex-col flex-1 min-w-[180px]">
-                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Caută după Autor/Artist</label>
-                        <input type="text" id="filter-text1" placeholder="Scrie autor..." class="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded-lg text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500">
-                    </div>
-                    <div class="flex flex-col flex-1 min-w-[180px]">
-                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Caută după Titlu</label>
-                        <input type="text" id="filter-text2" placeholder="Scrie titlu..." class="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded-lg text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500">
-                    </div>
-                `;
-            }
-
-            if (document.getElementById('filter-tip')) document.getElementById('filter-tip').value = activeFilters.tip || "Toate";
-            if (document.getElementById('filter-status')) document.getElementById('filter-status').value = activeFilters.status || "Toate";
-            if (document.getElementById('filter-an')) document.getElementById('filter-an').value = activeFilters.an || "Toate";
-            if (document.getElementById('filter-text1')) document.getElementById('filter-text1').value = activeFilters.text1 || "";
-            if (document.getElementById('filter-text2')) document.getElementById('filter-text2').value = activeFilters.text2 || "";
-        }
-
-        function getSortIndicator(key) {
-            if (currentSortKey !== key) return '<span class="text-gray-500 ml-1 text-[9px]">▲▼</span>';
-            return currentSortOrder === 'asc' ? '<span class="text-blue-400 ml-1">▲</span>' : '<span class="text-blue-400 ml-1">▼</span>';
-        }
-
-        function buildTableHeaderUI() {
-            const headerRow = document.getElementById('table-header-row');
-            if (!headerRow) return;
-            let actionsHtml = isAdmin ? `<th class="p-2 text-center w-20">Acțiuni</th>` : '';
-            
-            if (currentCategory === 'filme') {
-                headerRow.innerHTML = `
-                    <th class="p-2 sortable" onclick="handleHeaderSort('titlu')">TITLUL ORIGINAL ${getSortIndicator('titlu')}</th>
-                    <th class="p-2 sortable" onclick="handleHeaderSort('actori')">DISTRIBUȚIA (ACTORI) ${getSortIndicator('actori')}</th>
-                    <th class="p-2 sortable" onclick="handleHeaderSort('regizor')">REGIZOR ${getSortIndicator('regizor')}</th>
-                    <th class="p-2 sortable" onclick="handleHeaderSort('gen')">GEN ${getSortIndicator('gen')}</th>
-                    <th class="p-2 sortable w-24" onclick="handleHeaderSort('durata')">DURATA ${getSortIndicator('durata')}</th>
-                    <th class="p-2 text-center w-16">IMDB</th>
-                    ${actionsHtml}
-                `;
-            } else {
-                headerRow.innerHTML = `
-                    <th class="p-2 w-16">Cod</th>
-                    <th class="p-2 sortable" onclick="handleHeaderSort('autor')">Autor/Artist ${getSortIndicator('autor')}</th>
-                    <th class="p-2 sortable" onclick="handleHeaderSort('titlu')">Titlu ${getSortIndicator('titlu')}</th>
-                    <th class="p-2 w-24">Tip</th>
-                    <th class="p-2">Detalii / Domeniu</th>
-                    ${actionsHtml}
-                `;
-            }
-        }
-
-        function handleHeaderSort(key) {
-            if (currentSortKey === key) {
-                currentSortOrder = currentSortOrder === 'asc' ? 'desc' : 'asc';
-            } else {
-                currentSortKey = key;
-                currentSortOrder = 'asc';
-            }
-            buildTableHeaderUI();
-            renderTable();
-        }
-
-        function handleSearch(event) {
-            if (event) event.preventDefault();
-            if (document.getElementById('filter-tip')) activeFilters.tip = document.getElementById('filter-tip').value;
-            if (document.getElementById('filter-status')) activeFilters.status = document.getElementById('filter-status').value;
-            if (document.getElementById('filter-an')) activeFilters.an = document.getElementById('filter-an').value;
-            if (document.getElementById('filter-text1')) activeFilters.text1 = document.getElementById('filter-text1').value.trim().toLowerCase();
-            if (document.getElementById('filter-text2')) activeFilters.text2 = document.getElementById('filter-text2').value.trim().toLowerCase();
-            renderTable();
-        }
-
-        function resetCriteria() {
-            resetFiltersObject();
-            buildFiltersUI();
-            renderTable();
-        }
-
-        function renderTable() {
-            const tbody = document.getElementById('data-tbody');
-            if (!tbody) return;
-            tbody.innerHTML = '';
-
-            let list = [...(database[currentCategory] || [])];
-            
-            let filteredList = list.filter((item) => {
-                if (!item) return false;
-                if (activeFilters.tip && activeFilters.tip !== "Toate" && item.tip !== activeFilters.tip) return false;
-                if (currentCategory === 'filme') {
-                    if (activeFilters.status && activeFilters.status !== "Toate" && item.status !== activeFilters.status) return false;
-                    if (activeFilters.an && activeFilters.an !== "Toate" && item.an !== activeFilters.an) return false;
-                }
-                
-                if (activeFilters.text1) {
-                    if (currentCategory === 'filme') {
-                        const actori = item.actori ? item.actori.toLowerCase() : "";
-                        if (!actori.includes(activeFilters.text1)) return false;
-                    } else {
-                        const autor = item.autor ? item.autor.toLowerCase() : "";
-                        if (!autor.includes(activeFilters.text1)) return false;
-                    }
-                }
-
-                if (activeFilters.text2) {
-                    const titlu = item.titlu ? item.titlu.toLowerCase() : "";
-                    if (!titlu.includes(activeFilters.text2)) return false;
-                }
-                return true;
-            });
-
-            filteredList.sort((a, b) => {
-                let valA = a[currentSortKey] ? a[currentSortKey].toString().trim() : "";
-                let valB = b[currentSortKey] ? b[currentSortKey].toString().trim() : "";
-
-                if (currentSortKey === 'durata') {
-                    let numA = parseInt(valA) || 0;
-                    let numB = parseInt(valB) || 0;
-                    return currentSortOrder === 'asc' ? numA - numB : numB - numA;
-                }
-
-                return currentSortOrder === 'asc' 
-                    ? valA.localeCompare(valB, 'ro', { sensitivity: 'base' })
-                    : valB.localeCompare(valA, 'ro', { sensitivity: 'base' });
-            });
-
-            filteredList.forEach((item) => {
-                const originalIndex = database[currentCategory].findIndex(x => x.cod === item.cod);
-                
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-gray-800 transition border-b border-gray-800 align-middle";
-
-                let actionTd = isAdmin ? `
-                    <td class="p-2 text-center space-x-1 whitespace-nowrap">
-                        <button type="button" onclick="openModal('edit', ${originalIndex})" class="p-1 text-blue-400 hover:text-blue-300 hover:bg-gray-700 rounded transition" title="Modifică"><i class="fa-solid fa-pen-to-square"></i></button>
-                    </td>
-                ` : '';
-
-                if (currentCategory === 'filme') {
-                    const hasImdb = item.imdb && item.imdb.trim() !== "" && item.imdb !== "-" && item.imdb.toLowerCase().startsWith('http');
-                    const imdbBtnClass = hasImdb ? 'imdb-btn-active' : 'imdb-btn-inactive';
-                    const imdbAttr = hasImdb ? `href="${item.imdb}" target="_blank"` : `onclick="alert('Fără link IMDB valid.')"`;
-
-                    tr.innerHTML = `
-                        <td class="p-2 font-semibold text-white">${item.titlu}</td>
-                        <td class="p-2 text-xs text-gray-400 italic">${item.actori || '-'}</td>
-                        <td class="p-2 text-xs text-gray-400">${item.regizor || '-'}</td>
-                        <td class="p-2 text-xs text-gray-400">${item.gen || '-'}</td>
-                        <td class="p-2 text-xs text-gray-400 font-mono">${item.durata || '-'}</td>
-                        <td class="p-2 text-center">
-                            <a ${imdbAttr} class="${imdbBtnClass} px-2 py-0.5 rounded text-[10px] font-extrabold tracking-tight inline-flex items-center gap-1 transition shadow-sm cursor-pointer">
-                                <i class="fa-brands fa-imdb text-sm"></i> IMDB
-                            </a>
-                        </td>
-                        ${actionTd}
-                    `;
-                } else {
-                    tr.innerHTML = `
-                        <td class="p-2 font-mono text-xs text-blue-400 font-bold">${item.cod || ''}</td>
-                        <td class="p-2 font-semibold text-white">${item.autor || '-'}</td>
-                        <td class="p-2 text-gray-300 font-medium">${item.titlu}</td>
-                        <td class="p-2 text-xs">${item.tip || '-'}</td>
-                        <td class="p-2 text-xs text-gray-400">${item.gen || ''}</td>
-                        ${actionTd}
-                    `;
-                }
-
-                tbody.appendChild(tr);
-            });
-
-            const countEl = document.getElementById('item-count');
-            if (countEl) countEl.textContent = `${filteredList.length} elemente identificate`;
-        }
-
-        function processExcelPaste() {
-            const txt = document.getElementById('excel-paste-area').value.trim();
-            if (!txt) {
-                alert("Caseta este goală! Te rog lipsește datele copiate din Excel.");
-                return;
-            }
-
-            const tipGlobal = document.getElementById('form-tip').value;
-            const statusGlobal = document.getElementById('form-status').value;
-            const anGlobal = document.getElementById('form-an').value.trim() || "-";
-
-            const linii = txt.split('\n');
-            let elementeAdaugate = 0;
-
-            let maxNum = 0;
-            (database.filme || []).forEach(f => {
-                if (f && f.cod && f.cod.toString().startsWith("F25-")) {
-                    const numPart = parseInt(f.cod.toString().replace("F25-", ""));
-                    if (!isNaN(numPart) && numPart > maxNum) maxNum = numPart;
-                }
-            });
-
-            linii.forEach(linie => {
-                if (!linie.trim()) return;
-                
-                const coloane = linie.split('\t');
-                
-                let titlu = coloane[0] ? coloane[0].trim() : "";
-                if (!titlu) return; 
-
-                let actori = coloane[1] ? coloane[1].trim() : "-";
-                let gen = coloane[2] ? coloane[2].trim() : "-";
-                let durata = coloane[3] ? coloane[3].trim() : "-";
-                let imdb = coloane[4] ? coloane[4].trim() : "-";
-
-                maxNum++;
-                let noulCod = "F25-" + String(maxNum).padStart(3, '0');
-
-                let filmNou = {
-                    cod: noulCod,
-                    titlu: titlu,
-                    tip: tipGlobal,
-                    status: statusGlobal,
-                    gen: gen,
-                    an: anGlobal,
-                    regizor: "-", 
-                    durata: durata,
-                    actori: actori,
-                    imdb: imdb,
-                    url_img: ""
-                };
-
-                database.filme.push(filmNou);
-                elementeAdaugate++;
-            });
-
-            if (elementeAdaugate > 0) {
-                localStorage.setItem('biblioteca_media_db', JSON.stringify(database));
-                buildFiltersUI(); 
-                renderTable();
-                document.getElementById('excel-paste-area').value = ""; 
-                closeModal();
-                alert(`Succes! S-au vărsat ${elementeAdaugate} elemente cu Tip: "${tipGlobal}", Status: "${statusGlobal}" și An: "${anGlobal}".`);
-            } else {
-                alert("Nu s-a putut procesa nicio linie.");
-            }
-        }
-
-        function applyImageGeometry() {
-            const wrapper = document.getElementById('image-wrapper');
-            if (!wrapper) return;
-            if (currentCategory === 'filme') {
-                wrapper.style.minWidth = '140px'; wrapper.style.maxWidth = '140px'; wrapper.style.width = '140px'; wrapper.style.height = '195px';
-                document.getElementById('form-image-label').textContent = "Afiș (140x195)";
-                document.getElementById('modal-category-badge').textContent = "Filme & Seriale";
-            } else {
-                wrapper.style.minWidth = '150px'; wrapper.style.maxWidth = '150px'; wrapper.style.width = '150px'; wrapper.style.height = '150px';
-                document.getElementById('form-image-label').textContent = "Copertă (150x150)";
-                document.getElementById('modal-category-badge').textContent = "Media";
-            }
-        }
-
-        function generateFormFieldsHTML() {
-            const container = document.getElementById('dynamic-form-fields');
-            if (!container) return;
-            if (currentCategory === 'filme') {
-                container.innerHTML = `
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div class="flex flex-col"><label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Cod Element *</label><input type="text" id="form-cod" required class="w-full px-2.5 py-1 bg-gray-700 border border-gray-600 rounded-lg text-xs text-white focus:outline-none focus:border-blue-500"></div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <div class="flex flex-col"><label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tip</label><select id="form-tip" class="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded-lg text-xs text-white focus:outline-none focus:border-blue-500"><option value="Film">Film</option><option value="Serial">Serial</option></select></div>
-                            <div class="flex flex-col"><label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Status *</label><select id="form-status" class="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded-lg text-xs text-white focus:outline-none focus:border-blue-500"><option value="Vizionat">Vizionat</option><option value="De vizionat">De vizionat</option><option value="In asteptare">In asteptare</option></select></div>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div class="flex flex-col"><label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Gen film</label><input type="text" id="form-gen" class="w-full px-2.5 py-1 bg-gray-700 border border-gray-600 rounded-lg text-xs text-white focus:outline-none focus:border-blue-500"></div>
-                        <div class="flex flex-col"><label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">An lansare</label><input type="text" id="form-an" class="w-full px-2.5 py-1 bg-gray-700 border border-gray-600 rounded-lg text-xs text-white focus:outline-none focus:border-blue-500"></div>
-                    </div>
-                    <div class="flex flex-col"><label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Titlu original *</label><input type="text" id="form-titlu" required class="w-full px-2.5 py-1 bg-gray-700 border border-gray-600 rounded-lg text-xs text-white focus:outline-none focus:border-blue-500"></div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div class="flex flex-col"><label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Regizor</label><input type="text" id="form-regizor" class="w-full px-2.5 py-1 bg-gray-700 border border-gray-600 rounded-lg text-xs text-white focus:outline-none focus:border-blue-500"></div>
-                        <div class="flex flex-col"><label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Durată / Episoade</label><input type="text" id="form-durata" class="w-full px-2.5 py-1 bg-gray-700 border border-gray-600 rounded-lg text-xs text-white focus:outline-none focus:border-blue-500"></div>
-                    </div>
-                    <div class="flex flex-col"><label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">În distribuție (Actori) *</label><input type="text" id="form-actori" required class="w-full px-2.5 py-1 bg-gray-700 border border-gray-600 rounded-lg text-xs text-white focus:outline-none focus:border-blue-500"></div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div class="flex flex-col"><label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">URL Afiș</label><input type="url" id="form-url-img" oninput="updateImagePreview(this.value)" class="w-full px-2.5 py-1 bg-gray-700 border border-gray-600 rounded-lg text-xs text-white focus:outline-none focus:border-blue-500"></div>
-                        <div class="flex flex-col"><label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Link URL IMDB</label><input type="url" id="form-imdb" class="w-full px-2.5 py-1 bg-gray-700 border border-gray-600 rounded-lg text-xs text-white focus:outline-none focus:border-blue-500"></div>
-                    </div>
-                `;
-            } else {
-                container.innerHTML = `
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div class="flex flex-col"><label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Cod Element *</label><input type="text" id="form-cod" required class="w-full px-2.5 py-1 bg-gray-700 border border-gray-600 rounded-lg text-xs text-white focus:outline-none focus:border-blue-500"></div>
-                        <div class="flex flex-col"><label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tip Format</label><input type="text" id="form-tip" class="w-full px-2.5 py-1 bg-gray-700 border border-gray-600 rounded-lg text-xs text-white focus:outline-none focus:border-blue-500"></div>
-                    </div>
-                    <div class="flex flex-col"><label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Autor / Artist *</label><input type="text" id="form-autor" required class="w-full px-2.5 py-1 bg-gray-700 border border-gray-600 rounded-lg text-xs text-white focus:outline-none focus:border-blue-500"></div>
-                    <div class="flex flex-col"><label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Titlu *</label><input type="text" id="form-titlu" required class="w-full px-2.5 py-1 bg-gray-700 border border-gray-600 rounded-lg text-xs text-white focus:outline-none focus:border-blue-500"></div>
-                    <div class="flex flex-col"><label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Gen / Domeniu</label><input type="text" id="form-gen" class="w-full px-2.5 py-1 bg-gray-700 border border-gray-600 rounded-lg text-xs text-white focus:outline-none focus:border-blue-500"></div>
-                    <div class="flex flex-col"><label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">URL Copertă</label><input type="url" id="form-url-img" oninput="updateImagePreview(this.value)" class="w-full px-2.5 py-1 bg-gray-700 border border-gray-600 rounded-lg text-xs text-white focus:outline-none focus:border-blue-500"></div>
-                `;
-            }
-        }
-
-        function toggleAdminMode() {
-            if (!isAdmin) {
-                const pass = prompt("Introduceți parola de administrare pentru securizarea datelor:");
-                if (pass === null) return;
-                
-                if (pass === ADMIN_PASSWORD) {
-                    isAdmin = true;
-                    setAdminUI(true);
-                } else {
-                    alert("Parolă incorectă!");
-                }
-            } else {
-                isAdmin = false;
-                setAdminUI(false);
-            }
-            buildTableHeaderUI();
-            renderTable();
-        }
-
-        function setAdminUI(enabled) {
-            const toggleBtn = document.getElementById('admin-toggle-btn');
-            const addBtn = document.getElementById('add-new-btn');
-            const badge = document.getElementById('admin-badge');
-
-            if (enabled) {
-                toggleBtn.innerHTML = '<i class="fa-solid fa-right-from-bracket mr-1"></i> Blocare date';
-                toggleBtn.className = "px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg transition shadow-md whitespace-nowrap";
-                if (addBtn) addBtn.classList.remove('hidden');
-                if (badge) badge.classList.remove('hidden');
-            } else {
-                toggleBtn.innerHTML = '<i class="fa-solid fa-lock-open mr-1"></i> Actualizare date';
-                toggleBtn.className = "px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition shadow-md whitespace-nowrap";
-                if (addBtn) addBtn.classList.add('hidden');
-                if (badge) badge.classList.add('hidden');
-                closeModal();
-            }
-        }
-
-        function openModal(mode, index = null) {
-            if (!isAdmin) return;
-            generateFormFieldsHTML();
-            applyImageGeometry();
-            
-            const modal = document.getElementById('crud-modal');
-            const deleteBtn = document.getElementById('form-delete-btn');
-            const codInput = document.getElementById('form-cod');
-            const importZone = document.getElementById('excel-import-zone');
-            
-            if (!modal) return;
-            modal.classList.remove('hidden');
-            
-            if (mode === 'add') {
-                document.getElementById('form-edit-index').value = "";
-                if (deleteBtn) deleteBtn.classList.add('hidden');
-                if (codInput) {
-                    codInput.disabled = false;
-                    codInput.classList.remove('opacity-50', 'cursor-not-allowed');
-                }
-                
-                if (currentCategory === 'filme') {
-                    if (importZone) importZone.classList.remove('hidden');
-                    let maxNum = 0;
-                    (database.filme || []).forEach(f => {
-                        if (f && f.cod && f.cod.toString().startsWith("F25-")) {
-                            const numPart = parseInt(f.cod.toString().replace("F25-", ""));
-                            if (!isNaN(numPart) && numPart > maxNum) maxNum = numPart;
-                        }
-                    });
-                    if (codInput) codInput.value = "F25-" + String(maxNum + 1).padStart(3, '0');
-                } else {
-                    if (importZone) importZone.classList.add('hidden');
-                }
-                
-                resetFormFields(false);
-            } else if (mode === 'edit' && index !== null) {
-                document.getElementById('form-edit-index').value = index;
-                if (deleteBtn) deleteBtn.classList.remove('hidden');
-                if (importZone) importZone.classList.add('hidden'); 
-                if (codInput) {
-                    codInput.disabled = true;
-                    codInput.classList.add('opacity-50', 'cursor-not-allowed');
-                }
-                fillFormValues(index);
-            }
-        }
-
-        function closeModal() { 
-            const modal = document.getElementById('crud-modal');
-            if (modal) modal.classList.add('hidden'); 
-        }
-
-        function updateImagePreview(url) {
-            const icon = document.getElementById('image-placeholder-icon');
-            const text = document.getElementById('image-placeholder-text');
-            const img = document.getElementById('image-preview-element');
-            if (!img || !icon || !text) return;
-
-            if (url && url.trim() !== "" && url.toLowerCase().startsWith('http')) {
-                let cleanUrl = url.trim();
-                let proxyUrl = "https://images.weserv.nl/?url=" + encodeURIComponent(cleanUrl.replace(/^https?:\/\//i, ''));
-                
-                img.src = proxyUrl; 
-                img.classList.remove('hidden'); 
-                icon.classList.add('hidden'); 
-                text.classList.add('hidden');
-            } else {
-                img.src = ""; 
-                img.classList.add('hidden'); 
-                icon.classList.remove('hidden'); 
-                text.classList.remove('hidden');
-            }
-        }
-
-        function fillFormValues(index) {
-            const item = database[currentCategory][index];
-            if (!item) return;
-            if (document.getElementById('form-cod')) document.getElementById('form-cod').value = item.cod || '';
-            if (document.getElementById('form-titlu')) document.getElementById('form-titlu').value = item.titlu || '';
-            if (document.getElementById('form-tip')) document.getElementById('form-tip').value = item.tip || '';
-            if (document.getElementById('form-gen')) document.getElementById('form-gen').value = item.gen || '';
-            if (document.getElementById('form-an')) document.getElementById('form-an').value = item.an || '';
-            if (document.getElementById('form-url-img')) {
-                document.getElementById('form-url-img').value = item.url_img || '';
-                updateImagePreview(item.url_img);
-            }
-
-            if (currentCategory === 'filme') {
-                if (document.getElementById('form-status')) document.getElementById('form-status').value = item.status || 'De vizionat';
-                if (document.getElementById('form-regizor')) document.getElementById('form-regizor').value = item.regizor || '';
-                if (document.getElementById('form-durata')) document.getElementById('form-durata').value = item.durata || '';
-                if (document.getElementById('form-actori')) document.getElementById('form-actori').value = item.actori || '';
-                if (document.getElementById('form-imdb')) document.getElementById('form-imdb').value = item.imdb || '';
-            } else {
-                if (document.getElementById('form-autor')) document.getElementById('form-autor').value = item.autor || '';
-            }
-        }
-
-        function saveElement(event) {
-            event.preventDefault();
-            if (!isAdmin) return;
-
-            const idxStr = document.getElementById('form-edit-index').value;
-            const cod = document.getElementById('form-cod').value.trim();
-            const titlu = document.getElementById('form-titlu').value.trim();
-            const tip = document.getElementById('form-tip').value;
-            const gen = document.getElementById('form-gen') ? document.getElementById('form-gen').value.trim() : '';
-            const url_img = document.getElementById('form-url-img') ? document.getElementById('form-url-img').value.trim() : '';
-
-            let item = { cod, titlu, tip, gen, url_img };
-
-            if (currentCategory === 'filme') {
-                item.status = document.getElementById('form-status').value;
-                item.an = document.getElementById('form-an').value.trim();
-                item.regizor = document.getElementById('form-regizor').value.trim();
-                item.durata = document.getElementById('form-durata').value.trim();
-                item.actori = document.getElementById('form-actori').value.trim();
-                item.imdb = document.getElementById('form-imdb').value.trim();
-            } else {
-                item.autor = document.getElementById('form-autor').value.trim();
-            }
-
-            if (idxStr === "") {
-                if (database[currentCategory].some(x => x && x.cod && x.cod.toString().toLowerCase() === cod.toLowerCase())) {
-                    alert("Atenție! Acest Cod Element există deja în catalog."); return;
-                }
-                database[currentCategory].push(item);
-            } else {
-                database[currentCategory][parseInt(idxStr)] = item;
-            }
-
-            localStorage.setItem('biblioteca_media_db', JSON.stringify(database));
-            buildFiltersUI();
-            closeModal();
-            renderTable();
-        }
-
-        function deleteCurrentElement() {
-            if (!isAdmin) return;
-            const idxStr = document.getElementById('form-edit-index').value;
-            if (idxStr !== "") {
-                if (confirm("Sigur doriți să ștergeți definitiv acest element?")) {
-                    database[currentCategory].splice(parseInt(idxStr), 1);
-                    localStorage.setItem('biblioteca_media_db', JSON.stringify(database));
-                    buildFiltersUI();
-                    closeModal();
-                    renderTable();
-                }
-            }
-        }
-
-        function resetFormFields(clearCod = true) {
-            const idx = document.getElementById('form-edit-index').value;
-            const codEl = document.getElementById('form-cod');
-            const oldCod = codEl ? codEl.value : "";
-            
-            const form = document.getElementById('crud-form');
-            if (form) form.reset();
-            
-            document.getElementById('form-edit-index').value = idx;
-            if (!clearCod && codEl) {
-                codEl.value = oldCod;
-            }
-            updateImagePreview("");
-        }
-
-        // Pornire controlată aplicație
-        resetFiltersObject();
-        switchCategory('filme');
-    </script>
+    <script src="app.js"></script>
 </body>
 </html>
