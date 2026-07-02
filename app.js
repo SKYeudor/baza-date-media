@@ -9,31 +9,26 @@ let activeFilters = {};
 let currentSortKey = 'titlu';
 let currentSortOrder = 'asc'; 
 
-// Structură de bază neutră și sigură
 let database = { filme: [], muzica: [], carti: [] };
 
-// Încărcare inițială securizată (Rezistentă la date vechi sau masive simple)
 const storedDb = localStorage.getItem('biblioteca_media_db');
 if (storedDb) {
     try {
         const parsed = JSON.parse(storedDb);
         if (parsed && typeof parsed === 'object') {
             if (Array.isArray(parsed)) {
-                // Conversie automată dacă memoria veche conținea doar lista simplă de filme
                 database.filme = parsed;
             } else {
-                // Alocare sigură pentru fiecare sertar de categorie în parte
                 database.filme = Array.isArray(parsed.filme) ? parsed.filme : [];
                 database.muzica = Array.isArray(parsed.muzica) ? parsed.muzica : [];
                 database.carti = Array.isArray(parsed.carti) ? parsed.carti : [];
             }
         }
     } catch (e) {
-        console.error("Sistem: Eroare la parsarea bazei de date existente. Se aplică structura curată.", e);
+        console.error("Sistem: Eroare la parsarea bazei de date. Se aplică structura curată.", e);
     }
 }
 
-// Dacă aplicația este complet nouă sau goală, inserăm un element martor
 if (database.filme.length === 0 && database.muzica.length === 0 && database.carti.length === 0) {
     database.filme.push({ 
         cod: "F25-001", 
@@ -73,7 +68,7 @@ function switchCategory(cat) {
         }
     });
 
-    currentSortKey = 'titlu';
+    currentSortKey = cat === 'muzica' ? 'autor' : 'titlu';
     currentSortOrder = 'asc';
 
     resetFiltersObject();
@@ -84,10 +79,10 @@ function switchCategory(cat) {
 
 function getUniqueYearsFromDB() {
     const aniSet = new Set();
-    if (database && Array.isArray(database.filme)) {
-        database.filme.forEach(f => {
-            if (f.an && f.an !== "-" && f.an.toString().trim() !== "") {
-                aniSet.add(f.an.toString().trim());
+    if (database && Array.isArray(database[currentCategory])) {
+        database[currentCategory].forEach(item => {
+            if (item.an && item.an !== "-" && item.an.toString().trim() !== "") {
+                aniSet.add(item.an.toString().trim());
             }
         });
     }
@@ -99,13 +94,13 @@ function buildFiltersUI() {
     if (!container) return;
     container.innerHTML = '';
 
-    if (currentCategory === 'filme') {
-        const aniUnici = getUniqueYearsFromDB();
-        let anOptionsHtml = '<option value="Toate">Toate</option>';
-        aniUnici.forEach(an => {
-            anOptionsHtml += `<option value="${an}">${an}</option>`;
-        });
+    const aniUnici = getUniqueYearsFromDB();
+    let anOptionsHtml = '<option value="Toate">Toate</option>';
+    aniUnici.forEach(an => {
+        anOptionsHtml += `<option value="${an}">${an}</option>`;
+    });
 
+    if (currentCategory === 'filme') {
         container.innerHTML = `
             <div class="flex flex-col shrink-0 min-w-[130px]">
                 <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tip Conținut</label>
@@ -139,20 +134,45 @@ function buildFiltersUI() {
                 <input type="text" id="filter-text2" oninput="handleSearch()" placeholder="Scrie titlu..." class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500">
             </div>
         `;
-    } else {
+    } else if (currentCategory === 'muzica') {
         container.innerHTML = `
             <div class="flex flex-col shrink-0 min-w-[140px]">
-                <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tip Format</label>
+                <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tip Album</label>
                 <select id="filter-tip" onchange="handleSearch()" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
                     <option value="Toate">Toate</option>
-                    <option value="Album">Album</option>
+                    <option value="Album studio">Album studio</option>
+                    <option value="Album live">Album live</option>
                     <option value="Single">Single</option>
-                    <option value="Tiparit">Tiparit</option>
+                    <option value="Compilație">Compilație</option>
+                </select>
+            </div>
+            <div class="flex flex-col shrink-0 min-w-[110px]">
+                <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">An lansare</label>
+                <select id="filter-an" onchange="handleSearch()" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
+                    ${anOptionsHtml}
+                </select>
+            </div>
+            <div class="flex flex-col flex-1 min-w-[200px]">
+                <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Caută după Artist / Grup</label>
+                <input type="text" id="filter-text1" oninput="handleSearch()" placeholder="Scrie artist..." class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500">
+            </div>
+            <div class="flex flex-col flex-1 min-w-[200px]">
+                <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Caută după Titlu</label>
+                <input type="text" id="filter-text2" oninput="handleSearch()" placeholder="Scrie titlu..." class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500">
+            </div>
+        `;
+    } else if (currentCategory === 'carti') {
+        container.innerHTML = `
+            <div class="flex flex-col shrink-0 min-w-[140px]">
+                <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tip format</label>
+                <select id="filter-tip" onchange="handleSearch()" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
+                    <option value="Toate">Toate</option>
+                    <option value="Tipărit">Tipărit</option>
                     <option value="Electronic">Electronic</option>
                 </select>
             </div>
             <div class="flex flex-col flex-1 min-w-[200px]">
-                <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Caută după Autor/Artist</label>
+                <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Caută după Autor</label>
                 <input type="text" id="filter-text1" oninput="handleSearch()" placeholder="Scrie autor..." class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500">
             </div>
             <div class="flex flex-col flex-1 min-w-[200px]">
@@ -194,13 +214,23 @@ function buildTableHeaderUI() {
             <th class="p-3 sortable" onclick="handleHeaderSort('observatii')">OBSERVAȚII ${getSortIndicator('observatii')}</th>
             ${actionsHtml}
         `;
+    } else if (currentCategory === 'muzica') {
+        headerRow.innerHTML = `
+            <th class="p-3 sortable" onclick="handleHeaderSort('autor')">Artist / Trupă ${getSortIndicator('autor')}</th>
+            <th class="p-3 sortable" onclick="handleHeaderSort('titlu')">Titlu Album / Melodie ${getSortIndicator('titlu')}</th>
+            <th class="p-3 sortable w-24" onclick="handleHeaderSort('an')">An Lansare ${getSortIndicator('an')}</th>
+            <th class="p-3 sortable" onclick="handleHeaderSort('gen')">Gen Muzical ${getSortIndicator('gen')}</th>
+            <th class="p-3 sortable" onclick="handleHeaderSort('observatii')">Observații ${getSortIndicator('observatii')}</th>
+            <th class="p-3 text-center w-24">Copertă</th>
+            ${actionsHtml}
+        `;
     } else {
         headerRow.innerHTML = `
             <th class="p-3 w-20">Cod</th>
-            <th class="p-3 sortable" onclick="handleHeaderSort('autor')">Autor/Artist ${getSortIndicator('autor')}</th>
+            <th class="p-3 sortable" onclick="handleHeaderSort('autor')">Autor ${getSortIndicator('autor')}</th>
             <th class="p-3 sortable" onclick="handleHeaderSort('titlu')">Titlu ${getSortIndicator('titlu')}</th>
             <th class="p-3 w-24">Tip</th>
-            <th class="p-3">Detalii / Domeniu</th>
+            <th class="p-3">Domeniu</th>
             <th class="p-3 sortable" onclick="handleHeaderSort('observatii')">Observații ${getSortIndicator('observatii')}</th>
             ${actionsHtml}
         `;
@@ -248,19 +278,18 @@ function renderTable() {
     
     let filteredList = list.filter((item) => {
         if (activeFilters.tip && activeFilters.tip !== "Toate" && item.tip !== activeFilters.tip) return false;
+        
         if (currentCategory === 'filme') {
             if (activeFilters.status && activeFilters.status !== "Toate" && item.status !== activeFilters.status) return false;
+        }
+        
+        if (currentCategory === 'filme' || currentCategory === 'muzica') {
             if (activeFilters.an && activeFilters.an !== "Toate" && item.an !== activeFilters.an) return false;
         }
         
         if (activeFilters.text1) {
-            if (currentCategory === 'filme') {
-                const actori = item.actori ? item.actori.toLowerCase() : "";
-                if (!actori.includes(activeFilters.text1)) return false;
-            } else {
-                const autor = item.autor ? item.autor.toLowerCase() : "";
-                if (!autor.includes(activeFilters.text1)) return false;
-            }
+            const fieldText = item.autor ? item.autor.toLowerCase() : (item.actori ? item.actori.toLowerCase() : "");
+            if (!fieldText.includes(activeFilters.text1)) return false;
         }
 
         if (activeFilters.text2) {
@@ -274,7 +303,7 @@ function renderTable() {
         let valA = a[currentSortKey] ? a[currentSortKey].toString().trim() : "";
         let valB = b[currentSortKey] ? b[currentSortKey].toString().trim() : "";
 
-        if (currentSortKey === 'durata') {
+        if (currentSortKey === 'durata' || currentSortKey === 'an') {
             let numA = parseInt(valA) || 0;
             let numB = parseInt(valB) || 0;
             return currentSortOrder === 'asc' ? numA - numB : numB - numA;
@@ -297,7 +326,6 @@ function renderTable() {
             </td>
         ` : '';
 
-        // Tratare sigură a proprietății de observații pentru elemente mai vechi
         const obsAfisat = item.observatii || "-";
 
         if (currentCategory === 'filme') {
@@ -317,6 +345,23 @@ function renderTable() {
                     </a>
                 </td>
                 <td class="p-3 text-xs text-gray-400 max-w-xs truncate" title="${obsAfisat}">${obsAfisat}</td>
+                ${actionTd}
+            `;
+        } else if (currentCategory === 'muzica') {
+            const hasImg = item.url_img && item.url_img.trim() !== "" && item.url_img !== "-" && item.url_img.toLowerCase().startsWith('http');
+            let imgHtml = '<span class="text-xs text-gray-600">Fără imagine</span>';
+            if (hasImg) {
+                let proxyUrl = "https://images.weserv.nl/?url=" + encodeURIComponent(item.url_img.trim().replace(/^https?:\/\//i, ''));
+                imgHtml = `<img src="${proxyUrl}" class="w-10 h-10 object-cover rounded mx-auto shadow-sm" alt="Copertă">`;
+            }
+
+            tr.innerHTML = `
+                <td class="p-3 font-semibold text-white">${item.autor || '-'}</td>
+                <td class="p-3 text-gray-300 font-medium">${item.titlu || '-'}</td>
+                <td class="p-3 text-xs text-gray-400 font-mono">${item.an || '-'}</td>
+                <td class="p-3 text-xs text-gray-400">${item.gen || '-'}</td>
+                <td class="p-3 text-xs text-gray-400 max-w-xs truncate" title="${obsAfisat}">${obsAfisat}</td>
+                <td class="p-2 text-center">${imgHtml}</td>
                 ${actionTd}
             `;
         } else {
@@ -339,7 +384,7 @@ function renderTable() {
 }
 
 // ==========================================
-// VĂRSARE DATE EXCEL
+// EXPORT / PRELUARE DATE EXCEL
 // ==========================================
 function processExcelPaste() {
     const pasteArea = document.getElementById('excel-paste-area');
@@ -351,56 +396,76 @@ function processExcelPaste() {
         return;
     }
 
-    const tipGlobal = document.getElementById('form-tip') ? document.getElementById('form-tip').value : "Film";
+    const tipGlobal = document.getElementById('form-tip') ? document.getElementById('form-tip').value : "Album studio";
     const statusGlobal = document.getElementById('form-status') ? document.getElementById('form-status').value : "De vizionat";
     const anGlobal = (document.getElementById('form-an') && document.getElementById('form-an').value.trim()) || "-";
 
     const linii = txt.split('\n');
     let elementeAdaugate = 0;
 
-    let maxNum = 0;
-    if (database && Array.isArray(database.filme)) {
-        database.filme.forEach(f => {
-            if (f.cod && f.cod.startsWith("F25-")) {
-                const numPart = parseInt(f.cod.replace("F25-", ""));
-                if (!isNaN(numPart) && numPart > maxNum) maxNum = numPart;
-            }
+    if (currentCategory === 'filme') {
+        let maxNum = 0;
+        if (database && Array.isArray(database.filme)) {
+            database.filme.forEach(f => {
+                if (f.cod && f.cod.startsWith("F25-")) {
+                    const numPart = parseInt(f.cod.replace("F25-", ""));
+                    if (!isNaN(numPart) && numPart > maxNum) maxNum = numPart;
+                }
+            });
+        }
+
+        linii.forEach(linie => {
+            if (!linie.trim()) return;
+            const coloane = linie.split('\t');
+            let titlu = coloane[0] ? coloane[0].trim() : "";
+            if (!titlu) return; 
+
+            let actori = coloane[1] ? coloane[1].trim() : "-";
+            let gen = coloane[2] ? coloane[2].trim() : "-";
+            let durata = coloane[3] ? coloane[3].trim() : "-";
+            let imdb = coloane[4] ? coloane[4].trim() : "-";
+
+            maxNum++;
+            let noulCod = "F25-" + String(maxNum).padStart(3, '0');
+
+            database.filme.push({
+                cod: noulCod, titlu, tip: tipGlobal, status: statusGlobal, gen, an: anGlobal,
+                regizor: "-", durata, actori, imdb, url_img: "", observatii: "-"
+            });
+            elementeAdaugate++;
+        });
+    } else if (currentCategory === 'muzica') {
+        let maxNum = 0;
+        let prefix = "M26-";
+        if (database && Array.isArray(database.muzica)) {
+            database.muzica.forEach(m => {
+                if (m.cod && m.cod.startsWith(prefix)) {
+                    const numPart = parseInt(m.cod.replace(prefix, ""));
+                    if (!isNaN(numPart) && numPart > maxNum) maxNum = numPart;
+                }
+            });
+        }
+
+        linii.forEach(linie => {
+            if (!linie.trim()) return;
+            const coloane = linie.split('\t');
+            let artist = coloane[0] ? coloane[0].trim() : "";
+            let titlu = coloane[1] ? coloane[1].trim() : "";
+            if (!artist && !titlu) return;
+
+            let anLinie = coloane[2] ? coloane[2].trim() : anGlobal;
+            let gen = coloane[3] ? coloane[3].trim() : "-";
+
+            maxNum++;
+            let noulCod = prefix + String(maxNum).padStart(3, '0');
+
+            database.muzica.push({
+                cod: noulCod, autor: artist, titlu: titlu, tip: tipGlobal,
+                an: anLinie, gen: gen, url_img: "", observatii: "-"
+            });
+            elementeAdaugate++;
         });
     }
-
-    linii.forEach(linie => {
-        if (!linie.trim()) return;
-        
-        const coloane = linie.split('\t');
-        let titlu = coloane[0] ? coloane[0].trim() : "";
-        if (!titlu) return; 
-
-        let actori = coloane[1] ? coloane[1].trim() : "-";
-        let gen = coloane[2] ? coloane[2].trim() : "-";
-        let durata = coloane[3] ? coloane[3].trim() : "-";
-        let imdb = coloane[4] ? coloane[4].trim() : "-";
-
-        maxNum++;
-        let noulCod = "F25-" + String(maxNum).padStart(3, '0');
-
-        let filmNou = {
-            cod: noulCod,
-            titlu: titlu,
-            tip: tipGlobal,
-            status: statusGlobal,
-            gen: gen,
-            an: anGlobal,
-            regizor: "-", 
-            durata: durata,
-            actori: actori,
-            imdb: imdb,
-            url_img: "",
-            observatii: "-"
-        };
-
-        database.filme.push(filmNou);
-        elementeAdaugate++;
-    });
 
     if (elementeAdaugate > 0) {
         localStorage.setItem('biblioteca_media_db', JSON.stringify(database));
@@ -408,7 +473,7 @@ function processExcelPaste() {
         renderTable();
         pasteArea.value = ""; 
         closeModal();
-        alert(`Succes! S-au vărsat ${elementeAdaugate} elemente cu Tip: "${tipGlobal}", Status: "${statusGlobal}" și An: "${anGlobal}".`);
+        alert(`Succes! S-au exportat ${elementeAdaugate} elemente noi în baza de date.`);
     } else {
         alert("Nu s-a putut procesa nicio linie validă.");
     }
@@ -425,10 +490,14 @@ function applyImageGeometry() {
         wrapper.style.minWidth = '160px'; wrapper.style.maxWidth = '160px'; wrapper.style.width = '160px'; wrapper.style.height = '225px';
         if (document.getElementById('form-image-label')) document.getElementById('form-image-label').textContent = "Afiș (160x225)";
         if (document.getElementById('modal-category-badge')) document.getElementById('modal-category-badge').textContent = "Filme & Seriale";
+    } else if (currentCategory === 'muzica') {
+        wrapper.style.minWidth = '175px'; wrapper.style.maxWidth = '175px'; wrapper.style.width = '175px'; wrapper.style.height = '175px';
+        if (document.getElementById('form-image-label')) document.getElementById('form-image-label').textContent = "Copertă (175x175)";
+        if (document.getElementById('modal-category-badge')) document.getElementById('modal-category-badge').textContent = "Muzică";
     } else {
         wrapper.style.minWidth = '175px'; wrapper.style.maxWidth = '175px'; wrapper.style.width = '175px'; wrapper.style.height = '175px';
         if (document.getElementById('form-image-label')) document.getElementById('form-image-label').textContent = "Copertă (175x175)";
-        if (document.getElementById('modal-category-badge')) document.getElementById('modal-category-badge').textContent = "Media";
+        if (document.getElementById('modal-category-badge')) document.getElementById('modal-category-badge').textContent = "Cărți";
     }
 }
 
@@ -461,17 +530,32 @@ function generateFormFieldsHTML() {
             </div>
             <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Observații</label><input type="text" id="form-observatii" placeholder="Adaugă observații sau detalii utile..." class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
         `;
+    } else if (currentCategory === 'muzica') {
+        container.innerHTML = `
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Cod Element *</label><input type="text" id="form-cod" required class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
+                <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tip Album</label><select id="form-tip" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"><option value="Album studio">Album studio</option><option value="Album live">Album live</option><option value="Single">Single</option><option value="Compilație">Compilație</option></select></div>
+            </div>
+            <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Artist / Trupă *</label><input type="text" id="form-autor" required class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
+            <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Titlu Album / Melodie *</label><input type="text" id="form-titlu" required class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">An lansare</label><input type="text" id="form-an" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
+                <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Gen Muzical</label><input type="text" id="form-gen" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
+            </div>
+            <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">URL Copertă</label><input type="url" id="form-url-img" oninput="updateImagePreview(this.value)" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
+            <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Observații</label><input type="text" id="form-observatii" placeholder="Adaugă observații..." class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
+        `;
     } else {
         container.innerHTML = `
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Cod Element *</label><input type="text" id="form-cod" required class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
-                <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tip Format</label><input type="text" id="form-tip" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
+                <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tip format</label><select id="form-tip" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"><option value="Tipărit">Tipărit</option><option value="Electronic">Electronic</option></select></div>
             </div>
-            <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Autor / Artist *</label><input type="text" id="form-autor" required class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
+            <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Autor *</label><input type="text" id="form-autor" required class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
             <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Titlu *</label><input type="text" id="form-titlu" required class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
-            <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Gen / Domeniu</label><input type="text" id="form-gen" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
+            <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Domeniu</label><input type="text" id="form-gen" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
             <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">URL Copertă</label><input type="url" id="form-url-img" oninput="updateImagePreview(this.value)" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
-            <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Observații</label><input type="text" id="form-observatii" placeholder="Adaugă observații sau detalii utile..." class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
+            <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Observații</label><input type="text" id="form-observatii" placeholder="Adaugă observații..." class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
         `;
     }
 }
@@ -527,6 +611,8 @@ function openModal(mode, index = null) {
     const deleteBtn = document.getElementById('form-delete-btn');
     const codInput = document.getElementById('form-cod');
     const importZone = document.getElementById('excel-import-zone');
+    const excelTitle = document.getElementById('excel-zone-title');
+    const excelDesc = document.getElementById('excel-zone-desc');
     
     if (modal) modal.classList.remove('hidden');
     
@@ -540,6 +626,9 @@ function openModal(mode, index = null) {
         
         if (currentCategory === 'filme') {
             if (importZone) importZone.classList.remove('hidden');
+            if (excelTitle) excelTitle.innerHTML = '<i class="fa-solid fa-file-import"></i> Caseta de Export Date Excel (Filme & Seriale)';
+            if (excelDesc) excelDesc.innerHTML = 'Sistemul va asocia automat datele importate cu <strong>Tipul</strong>, <strong>Statusul</strong> și <strong>Anul</strong> selectate în casetele de mai sus. (Structură obligatorie: Col. A: Titlu, Col. B: Distribuție, Col. C: Gen, Col. D: Durată, Col. E: IMDB).';
+            
             let maxNum = 0;
             if (database && Array.isArray(database.filme)) {
                 database.filme.forEach(f => {
@@ -550,21 +639,33 @@ function openModal(mode, index = null) {
                 });
             }
             if (codInput) codInput.value = "F25-" + String(maxNum + 1).padStart(3, '0');
+        } else if (currentCategory === 'muzica') {
+            if (importZone) importZone.classList.remove('hidden');
+            if (excelTitle) excelTitle.innerHTML = '<i class="fa-solid fa-file-import"></i> Caseta de Export Date Excel (Muzică)';
+            if (excelDesc) excelDesc.innerHTML = 'Sistemul va genera automat codurile. (Structură obligatorie: Col. A: Artist / Trupă, Col. B: Titlu Album / Melodie, Col. C: An Lansare, Col. D: Gen Muzical). Opțiunea selectată la "Tip Album" de mai sus va fi aplicată global.';
+            
+            let maxNum = 0;
+            if (database && Array.isArray(database.muzica)) {
+                database.muzica.forEach(m => {
+                    if (m.cod && m.cod.startsWith("M26-")) {
+                        const numPart = parseInt(m.cod.replace("M26-", ""));
+                        if (!isNaN(numPart) && numPart > maxNum) maxNum = numPart;
+                    }
+                });
+            }
+            if (codInput) codInput.value = "M26-" + String(maxNum + 1).padStart(3, '0');
         } else {
             if (importZone) importZone.classList.add('hidden');
-            if (codInput) {
-                let prefix = currentCategory === 'muzica' ? 'M26-' : 'C26-';
-                let maxNum = 0;
-                if (database && Array.isArray(database[currentCategory])) {
-                    database[currentCategory].forEach(item => {
-                        if (item.cod && item.cod.startsWith(prefix)) {
-                            const numPart = parseInt(item.cod.replace(prefix, ""));
-                            if (!isNaN(numPart) && numPart > maxNum) maxNum = numPart;
-                        }
-                    });
-                }
-                codInput.value = prefix + String(maxNum + 1).padStart(3, '0');
+            let maxNum = 0;
+            if (database && Array.isArray(database.carti)) {
+                database.carti.forEach(c => {
+                    if (c.cod && c.cod.startsWith("C26-")) {
+                        const numPart = parseInt(c.cod.replace("C26-", ""));
+                        if (!isNaN(numPart) && numPart > maxNum) maxNum = numPart;
+                    }
+                });
             }
+            if (codInput) codInput.value = "C26-" + String(maxNum + 1).padStart(3, '0');
         }
         
         resetFormFields(false);
@@ -645,12 +746,12 @@ function saveElement(event) {
     const gen = document.getElementById('form-gen') ? document.getElementById('form-gen').value.trim() : '';
     const url_img = document.getElementById('form-url-img') ? document.getElementById('form-url-img').value.trim() : '';
     const observatii = document.getElementById('form-observatii') ? document.getElementById('form-observatii').value.trim() : '-';
+    const an = document.getElementById('form-an') ? document.getElementById('form-an').value.trim() : '';
 
-    let item = { cod, titlu, tip, gen, url_img, observatii };
+    let item = { cod, titlu, tip, gen, an, url_img, observatii };
 
     if (currentCategory === 'filme') {
         item.status = document.getElementById('form-status') ? document.getElementById('form-status').value : 'De vizionat';
-        item.an = document.getElementById('form-an') ? document.getElementById('form-an').value.trim() : '';
         item.regizor = document.getElementById('form-regizor') ? document.getElementById('form-regizor').value.trim() : '';
         item.durata = document.getElementById('form-durata') ? document.getElementById('form-durata').value.trim() : '';
         item.actori = document.getElementById('form-actori') ? document.getElementById('form-actori').value.trim() : '';
