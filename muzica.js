@@ -308,7 +308,7 @@
         }
     };
 
-    // 8. ALGORITMUL DE VĂRSARE DATE DIN EXCEL (FORMAT CONFORM PASAPORT: ARTIST | TITLU | AN | GEN)
+    // 8. ALGORITMUL DE PRELUARE DATE DIN EXCEL (FORMAT CONFORM PAȘAPORT: ARTIST | TITLU | AN | GEN)
     window.processExcelPaste = function() {
         if (window.currentCategory !== 'muzica') {
             if (_origProcessExcelPaste) _origProcessExcelPaste();
@@ -376,7 +376,7 @@
             window.renderTable();
             pasteArea.value = ""; 
             window.closeModal();
-            alert(`Succes! S-au vărsat ${elementeAdaugate} piese de muzică.`);
+            alert(`Succes! S-au preluat și salvat ${elementeAdaugate} elemente muzicale.`);
         } else {
             alert("Nu s-a putut procesa nicio linie validă.");
         }
