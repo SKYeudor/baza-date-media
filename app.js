@@ -62,7 +62,7 @@ function switchCategory(cat) {
 
 function getUniqueYearsFromDB() {
     const aniSet = new Set();
-    const colectie curenta = database[currentCategory] || [];
+    const colectie = database[currentCategory] || [];
     colectie.forEach(item => {
         if (item.an && item.an !== "-") {
             aniSet.add(item.an.trim());
@@ -199,7 +199,7 @@ function buildTableHeaderUI() {
             <th class="p-3 sortable" onclick="handleHeaderSort('regizor')">REGIZOR ${getSortIndicator('regizor')}</th>
             <th class="p-3 sortable" onclick="handleHeaderSort('gen')">GEN ${getSortIndicator('gen')}</th>
             <th class="p-3 sortable w-24" onclick="handleHeaderSort('durata')">DURATA ${getSortIndicator('durata')}</th>
-            <th class="p-3">OBSERVAȚII</th>
+            <th class="p-3">OBSERVATII</th>
             <th class="p-3 text-center w-20">IMDB</th>
             ${actionsHtml}
         `;
@@ -207,11 +207,11 @@ function buildTableHeaderUI() {
         headerRow.innerHTML = `
             <th class="p-3 w-20">Cod</th>
             <th class="p-3 sortable" onclick="handleHeaderSort('autor')">Artist / Trupă ${getSortIndicator('autor')}</th>
-            <th class="p-3 sortable" onclick="handleHeaderSort('titlu')">Titru Album / Melodie ${getSortIndicator('titlu')}</th>
+            <th class="p-3 sortable" onclick="handleHeaderSort('titlu')">Titlu Album / Melodie ${getSortIndicator('titlu')}</th>
             <th class="p-3 sortable w-24" onclick="handleHeaderSort('an')">An ${getSortIndicator('an')}</th>
             <th class="p-3 w-24">Tip</th>
             <th class="p-3">Gen</th>
-            <th class="p-3">OBSERVAȚII</th>
+            <th class="p-3">OBSERVATII</th>
             ${actionsHtml}
         `;
     } else {
@@ -221,7 +221,7 @@ function buildTableHeaderUI() {
             <th class="p-3 sortable" onclick="handleHeaderSort('titlu')">Titlu ${getSortIndicator('titlu')}</th>
             <th class="p-3 w-24">Tip</th>
             <th class="p-3">Gen / Domeniu</th>
-            <th class="p-3">OBSERVAȚII</th>
+            <th class="p-3">OBSERVATII</th>
             ${actionsHtml}
         `;
     }
@@ -425,7 +425,7 @@ function processExcelPaste() {
 }
 
 // ==========================================
-// MANAGEMENT FINAR FORMULAR & MODALE (CRUD)
+// MANAGEMENT FINAL FORMULAR & MODALE (CRUD)
 // ==========================================
 function applyImageGeometry() {
     const wrapper = document.getElementById('image-wrapper');
@@ -465,7 +465,7 @@ function generateFormFieldsHTML() {
                 <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Durată / Episoade</label><input type="text" id="form-durata" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
             </div>
             <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">În distribuție (Actori) *</label><input type="text" id="form-actori" required class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
-            <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">OBSERVAȚII</label><input type="text" id="form-observatii" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500" placeholder="Note, adnotări libere sau detalii tehnice..."></div>
+            <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">OBSERVATII</label><input type="text" id="form-observatii" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500" placeholder="Note, adnotări libere sau detalii tehnice..."></div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">URL Afiș</label><input type="url" id="form-url-img" oninput="updateImagePreview(this.value)" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
                 <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Link URL IMDB</label><input type="url" id="form-imdb" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
@@ -486,7 +486,7 @@ function generateFormFieldsHTML() {
                 <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">An lansare</label><input type="text" id="form-an" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
                 <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Gen Muzical</label><input type="text" id="form-gen" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
             </div>
-            <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">OBSERVAȚII</label><input type="text" id="form-observatii" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500" placeholder="Detalii tehnice (Vinyl Rip, Flac, etc.) sau note libere..."></div>
+            <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">OBSERVATII</label><input type="text" id="form-observatii" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500" placeholder="Detalii tehnice (Vinyl Rip, Flac, etc.) sau note libere..."></div>
             <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">URL Copertă</label><input type="url" id="form-url-img" oninput="updateImagePreview(this.value)" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
         `;
     } else {
@@ -498,7 +498,7 @@ function generateFormFieldsHTML() {
             <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Autor *</label><input type="text" id="form-autor" required class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
             <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Titlu *</label><input type="text" id="form-titlu" required class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
             <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Gen / Domeniu</label><input type="text" id="form-gen" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
-            <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">OBSERVAȚII</label><input type="text" id="form-observatii" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500" placeholder="Note, adnotări libere sau detalii..."></div>
+            <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">OBSERVATII</label><input type="text" id="form-observatii" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500" placeholder="Note, adnotări libere sau detalii..."></div>
             <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">URL Copertă</label><input type="url" id="form-url-img" oninput="updateImagePreview(this.value)" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
         `;
     }
@@ -523,7 +523,6 @@ function toggleAdminMode() {
     renderTable();
 }
 
-// (Restul funcțiilor administrative rămân intacte și adaptate complet la câmpul observatii)
 function setAdminUI(enabled) {
     const toggleBtn = document.getElementById('admin-toggle-btn');
     const addBtn = document.getElementById('add-new-btn');
@@ -574,7 +573,7 @@ function openModal(mode, index = null) {
         if (currentCategory === 'filme') {
             importZone.classList.remove('hidden');
         } else {
-            importZone.classList.add('hidden'); // Casetele speciale de muzica vor fi legate direct în fișierul separat muzica.js
+            importZone.classList.add('hidden');
         }
         
         resetFormFields(false);
@@ -650,62 +649,4 @@ function saveElement(event) {
     const status = document.getElementById('form-status') ? document.getElementById('form-status').value : '';
     const gen = document.getElementById('form-gen') ? document.getElementById('form-gen').value.trim() : '';
     const an = document.getElementById('form-an') ? document.getElementById('form-an').value.trim() : '';
-    const url_img = document.getElementById('form-url-img') ? document.getElementById('form-url-img').value.trim() : '';
-    const observatii = document.getElementById('form-observatii') ? document.getElementById('form-observatii').value.trim() : '';
-
-    let item = { cod, titlu, tip, status, gen, an, url_img, observatii };
-
-    if (currentCategory === 'filme') {
-        item.regizor = document.getElementById('form-regizor').value.trim();
-        item.durata = document.getElementById('form-durata').value.trim();
-        item.actori = document.getElementById('form-actori').value.trim();
-        item.imdb = document.getElementById('form-imdb').value.trim();
-    } else {
-        item.autor = document.getElementById('form-autor').value.trim();
-    }
-
-    if (idxStr === "") {
-        if (database[currentCategory].some(x => x.cod.toLowerCase() === cod.toLowerCase())) {
-            alert("Atenție! Acest Cod Element există deja în catalog."); return;
-        }
-        database[currentCategory].push(item);
-    } else {
-        database[currentCategory][parseInt(idxStr)] = item;
-    }
-
-    localStorage.setItem('biblioteca_media_db', JSON.stringify(database));
-    buildFiltersUI();
-    closeModal();
-    renderTable();
-}
-
-function deleteCurrentElement() {
-    if (!isAdmin) return;
-    const idxStr = document.getElementById('form-edit-index').value;
-    if (idxStr !== "") {
-        if (confirm("Sigur doriți să ștergeți definitiv acest element?")) {
-            database[currentCategory].splice(parseInt(idxStr), 1);
-            localStorage.setItem('biblioteca_media_db', JSON.stringify(database));
-            buildFiltersUI();
-            closeModal();
-            renderTable();
-        }
-    }
-}
-
-function resetFormFields(clearCod = true) {
-    const idx = document.getElementById('form-edit-index').value;
-    const oldCod = document.getElementById('form-cod').value;
-    document.getElementById('crud-form').reset();
-    document.getElementById('form-edit-index').value = idx;
-    if (!clearCod) {
-        document.getElementById('form-cod').value = oldCod;
-    }
-    updateImagePreview("");
-}
-
-// ==========================================
-// INIȚIALIZARE EVENIMENTE LA PORNIRE
-// ==========================================
-resetFiltersObject();
-switchCategory('filme');
+    const url_img = document.getElementById('form-url-img
