@@ -1,0 +1,21 @@
+/* Stiluri personalizate pentru Biblioteca Media */
+.imdb-btn-active { 
+    background-color: #f5c518; 
+    color: #000000; 
+}
+.imdb-btn-active:hover { 
+    background-color: #e2b616; 
+}
+.imdb-btn-inactive { 
+    background-color: #374151; 
+    color: #9ca3af; 
+    cursor: not-allowed; 
+}
+th.sortable { 
+    cursor: pointer; 
+    user-select: none; 
+}
+th.sortable:hover { 
+    background-color: #3f4b5d; 
+    color: #ffffff; 
+}
