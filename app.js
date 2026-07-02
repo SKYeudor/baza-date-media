@@ -9,12 +9,32 @@ let activeFilters = {};
 let currentSortKey = 'titlu';
 let currentSortOrder = 'asc'; 
 
+// Structură de bază neutră și sigură
 let database = { filme: [], muzica: [], carti: [] };
 
-// Încărcare inițială a bazei de date
-if (localStorage.getItem('biblioteca_media_db')) {
-    database = JSON.parse(localStorage.getItem('biblioteca_media_db'));
-} else {
+// Încărcare inițială securizată (Rezistentă la date vechi sau masive simple)
+const storedDb = localStorage.getItem('biblioteca_media_db');
+if (storedDb) {
+    try {
+        const parsed = JSON.parse(storedDb);
+        if (parsed && typeof parsed === 'object') {
+            if (Array.isArray(parsed)) {
+                // Conversie automată dacă memoria veche conținea doar lista simplă de filme
+                database.filme = parsed;
+            } else {
+                // Alocare sigură pentru fiecare sertar de categorie în parte
+                database.filme = Array.isArray(parsed.filme) ? parsed.filme : [];
+                database.muzica = Array.isArray(parsed.muzica) ? parsed.muzica : [];
+                database.carti = Array.isArray(parsed.carti) ? parsed.carti : [];
+            }
+        }
+    } catch (e) {
+        console.error("Sistem: Eroare la parsarea bazei de date existente. Se aplică structura curată.", e);
+    }
+}
+
+// Dacă aplicația este complet nouă sau goală, inserăm un element martor
+if (database.filme.length === 0 && database.muzica.length === 0 && database.carti.length === 0) {
     database.filme.push({ 
         cod: "F25-001", 
         titlu: "Exemplu Catalog", 
@@ -44,10 +64,12 @@ function switchCategory(cat) {
     
     ['filme', 'muzica', 'carti'].forEach(c => {
         const btn = document.getElementById(`btn-${c}`);
-        if (c === cat) {
-            btn.className = "px-5 py-2 rounded-lg text-sm font-bold uppercase transition whitespace-nowrap bg-blue-600 text-white shadow-md";
-        } else {
-            btn.className = "px-5 py-2 rounded-lg text-sm font-bold uppercase transition whitespace-nowrap bg-gray-750 text-gray-400 hover:bg-gray-700";
+        if (btn) {
+            if (c === cat) {
+                btn.className = "px-5 py-2 rounded-lg text-sm font-bold uppercase transition whitespace-nowrap bg-blue-600 text-white shadow-md";
+            } else {
+                btn.className = "px-5 py-2 rounded-lg text-sm font-bold uppercase transition whitespace-nowrap bg-gray-750 text-gray-400 hover:bg-gray-700";
+            }
         }
     });
 
@@ -62,16 +84,19 @@ function switchCategory(cat) {
 
 function getUniqueYearsFromDB() {
     const aniSet = new Set();
-    database.filme.forEach(f => {
-        if (f.an && f.an !== "-") {
-            aniSet.add(f.an.trim());
-        }
-    });
+    if (database && Array.isArray(database.filme)) {
+        database.filme.forEach(f => {
+            if (f.an && f.an !== "-" && f.an.toString().trim() !== "") {
+                aniSet.add(f.an.toString().trim());
+            }
+        });
+    }
     return Array.from(aniSet).sort((a, b) => b - a); 
 }
 
 function buildFiltersUI() {
     const container = document.getElementById('filters-container');
+    if (!container) return;
     container.innerHTML = '';
 
     if (currentCategory === 'filme') {
@@ -84,7 +109,7 @@ function buildFiltersUI() {
         container.innerHTML = `
             <div class="flex flex-col shrink-0 min-w-[130px]">
                 <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tip Conținut</label>
-                <select id="filter-tip" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
+                <select id="filter-tip" onchange="handleSearch()" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
                     <option value="Toate">Toate</option>
                     <option value="Film">Film</option>
                     <option value="Serial">Serial</option>
@@ -92,7 +117,7 @@ function buildFiltersUI() {
             </div>
             <div class="flex flex-col shrink-0 min-w-[140px]">
                 <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Status vizionare</label>
-                <select id="filter-status" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
+                <select id="filter-status" onchange="handleSearch()" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
                     <option value="Toate">Toate</option>
                     <option value="Vizionat">Vizionat</option>
                     <option value="De vizionat">De vizionat</option>
@@ -101,24 +126,24 @@ function buildFiltersUI() {
             </div>
             <div class="flex flex-col shrink-0 min-w-[110px]">
                 <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">An lansare</label>
-                <select id="filter-an" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
+                <select id="filter-an" onchange="handleSearch()" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
                     ${anOptionsHtml}
                 </select>
             </div>
             <div class="flex flex-col flex-1 min-w-[180px]">
                 <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Caută după Actor</label>
-                <input type="text" id="filter-text1" placeholder="Scrie actor..." class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500">
+                <input type="text" id="filter-text1" oninput="handleSearch()" placeholder="Scrie actor..." class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500">
             </div>
             <div class="flex flex-col flex-1 min-w-[180px]">
                 <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Caută după Titlu</label>
-                <input type="text" id="filter-text2" placeholder="Scrie titlu..." class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500">
+                <input type="text" id="filter-text2" oninput="handleSearch()" placeholder="Scrie titlu..." class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500">
             </div>
         `;
     } else {
         container.innerHTML = `
             <div class="flex flex-col shrink-0 min-w-[140px]">
                 <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tip Format</label>
-                <select id="filter-tip" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
+                <select id="filter-tip" onchange="handleSearch()" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
                     <option value="Toate">Toate</option>
                     <option value="Album">Album</option>
                     <option value="Single">Single</option>
@@ -128,11 +153,11 @@ function buildFiltersUI() {
             </div>
             <div class="flex flex-col flex-1 min-w-[200px]">
                 <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Caută după Autor/Artist</label>
-                <input type="text" id="filter-text1" placeholder="Scrie autor..." class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500">
+                <input type="text" id="filter-text1" oninput="handleSearch()" placeholder="Scrie autor..." class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500">
             </div>
             <div class="flex flex-col flex-1 min-w-[200px]">
                 <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Caută după Titlu</label>
-                <input type="text" id="filter-text2" placeholder="Scrie titlu..." class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500">
+                <input type="text" id="filter-text2" oninput="handleSearch()" placeholder="Scrie titlu..." class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500">
             </div>
         `;
     }
@@ -152,9 +177,10 @@ function getSortIndicator(key) {
     return currentSortOrder === 'asc' ? '<span class="text-blue-400 ml-1">▲</span>' : '<span class="text-blue-400 ml-1">▼</span>';
 }
 
-// Trasează capul de tabel adaptat categoriei active
 function buildTableHeaderUI() {
     const headerRow = document.getElementById('table-header-row');
+    if (!headerRow) return;
+    
     let actionsHtml = isAdmin ? `<th class="p-3 text-center w-24">Acțiuni</th>` : '';
     
     if (currentCategory === 'filme') {
@@ -193,12 +219,14 @@ function handleHeaderSort(key) {
 }
 
 function handleSearch(event) {
-    event.preventDefault();
+    if (event && typeof event.preventDefault === 'function') event.preventDefault();
+    
     if (document.getElementById('filter-tip')) activeFilters.tip = document.getElementById('filter-tip').value;
     if (document.getElementById('filter-status')) activeFilters.status = document.getElementById('filter-status').value;
     if (document.getElementById('filter-an')) activeFilters.an = document.getElementById('filter-an').value;
     if (document.getElementById('filter-text1')) activeFilters.text1 = document.getElementById('filter-text1').value.trim().toLowerCase();
     if (document.getElementById('filter-text2')) activeFilters.text2 = document.getElementById('filter-text2').value.trim().toLowerCase();
+    
     renderTable();
 }
 
@@ -210,9 +238,13 @@ function resetCriteria() {
 
 function renderTable() {
     const tbody = document.getElementById('data-tbody');
+    if (!tbody) return;
     tbody.innerHTML = '';
 
-    let list = [...(database[currentCategory] || [])];
+    let list = [];
+    if (database && Array.isArray(database[currentCategory])) {
+        list = [...database[currentCategory]];
+    }
     
     let filteredList = list.filter((item) => {
         if (activeFilters.tip && activeFilters.tip !== "Toate" && item.tip !== activeFilters.tip) return false;
@@ -265,6 +297,9 @@ function renderTable() {
             </td>
         ` : '';
 
+        // Tratare sigură a proprietății de observații pentru elemente mai vechi
+        const obsAfisat = item.observatii || "-";
+
         if (currentCategory === 'filme') {
             const hasImdb = item.imdb && item.imdb.trim() !== "" && item.imdb !== "-" && item.imdb.toLowerCase().startsWith('http');
             const imdbBtnClass = hasImdb ? 'imdb-btn-active' : 'imdb-btn-inactive';
@@ -281,7 +316,7 @@ function renderTable() {
                         <i class="fa-brands fa-imdb text-sm"></i> IMDB
                     </a>
                 </td>
-                <td class="p-3 text-xs text-gray-400 max-w-xs truncate" title="${item.observatii || '-'}">${item.observatii || '-'}</td>
+                <td class="p-3 text-xs text-gray-400 max-w-xs truncate" title="${obsAfisat}">${obsAfisat}</td>
                 ${actionTd}
             `;
         } else {
@@ -291,7 +326,7 @@ function renderTable() {
                 <td class="p-3 text-gray-300 font-medium">${item.titlu}</td>
                 <td class="p-3 text-xs">${item.tip || '-'}</td>
                 <td class="p-3 text-xs text-gray-400">${item.gen || ''}</td>
-                <td class="p-3 text-xs text-gray-400 max-w-xs truncate" title="${item.observatii || '-'}">${item.observatii || '-'}</td>
+                <td class="p-3 text-xs text-gray-400 max-w-xs truncate" title="${obsAfisat}">${obsAfisat}</td>
                 ${actionTd}
             `;
         }
@@ -299,39 +334,44 @@ function renderTable() {
         tbody.appendChild(tr);
     });
 
-    document.getElementById('item-count').textContent = `${filteredList.length} elemente identificate`;
+    const countEl = document.getElementById('item-count');
+    if (countEl) countEl.textContent = `${filteredList.length} elemente identificate`;
 }
 
 // ==========================================
 // VĂRSARE DATE EXCEL
 // ==========================================
 function processExcelPaste() {
-    const txt = document.getElementById('excel-paste-area').value.trim();
+    const pasteArea = document.getElementById('excel-paste-area');
+    if (!pasteArea) return;
+    
+    const txt = pasteArea.value.trim();
     if (!txt) {
         alert("Caseta este goală! Te rog lipsește datele copiate din Excel.");
         return;
     }
 
-    const tipGlobal = document.getElementById('form-tip').value;
-    const statusGlobal = document.getElementById('form-status').value;
-    const anGlobal = document.getElementById('form-an').value.trim() || "-";
+    const tipGlobal = document.getElementById('form-tip') ? document.getElementById('form-tip').value : "Film";
+    const statusGlobal = document.getElementById('form-status') ? document.getElementById('form-status').value : "De vizionat";
+    const anGlobal = (document.getElementById('form-an') && document.getElementById('form-an').value.trim()) || "-";
 
     const linii = txt.split('\n');
     let elementeAdaugate = 0;
 
     let maxNum = 0;
-    database.filme.forEach(f => {
-        if (f.cod && f.cod.startsWith("F25-")) {
-            const numPart = parseInt(f.cod.replace("F25-", ""));
-            if (!isNaN(numPart) && numPart > maxNum) maxNum = numPart;
-        }
-    });
+    if (database && Array.isArray(database.filme)) {
+        database.filme.forEach(f => {
+            if (f.cod && f.cod.startsWith("F25-")) {
+                const numPart = parseInt(f.cod.replace("F25-", ""));
+                if (!isNaN(numPart) && numPart > maxNum) maxNum = numPart;
+            }
+        });
+    }
 
     linii.forEach(linie => {
         if (!linie.trim()) return;
         
         const coloane = linie.split('\t');
-        
         let titlu = coloane[0] ? coloane[0].trim() : "";
         if (!titlu) return; 
 
@@ -366,32 +406,36 @@ function processExcelPaste() {
         localStorage.setItem('biblioteca_media_db', JSON.stringify(database));
         buildFiltersUI(); 
         renderTable();
-        document.getElementById('excel-paste-area').value = ""; 
+        pasteArea.value = ""; 
         closeModal();
         alert(`Succes! S-au vărsat ${elementeAdaugate} elemente cu Tip: "${tipGlobal}", Status: "${statusGlobal}" și An: "${anGlobal}".`);
     } else {
-        alert("Nu s-a putut procesa nicio linie.");
+        alert("Nu s-a putut procesa nicio linie validă.");
     }
 }
 
 // ==========================================
-// MANAGEMENT FINAR FORMULAR & MODALE (CRUD)
+// MANAGEMENT DINAMIC FORMULAR & MODALE (CRUD)
 // ==========================================
 function applyImageGeometry() {
     const wrapper = document.getElementById('image-wrapper');
+    if (!wrapper) return;
+    
     if (currentCategory === 'filme') {
         wrapper.style.minWidth = '160px'; wrapper.style.maxWidth = '160px'; wrapper.style.width = '160px'; wrapper.style.height = '225px';
-        document.getElementById('form-image-label').textContent = "Afiș (160x225)";
-        document.getElementById('modal-category-badge').textContent = "Filme & Seriale";
+        if (document.getElementById('form-image-label')) document.getElementById('form-image-label').textContent = "Afiș (160x225)";
+        if (document.getElementById('modal-category-badge')) document.getElementById('modal-category-badge').textContent = "Filme & Seriale";
     } else {
         wrapper.style.minWidth = '175px'; wrapper.style.maxWidth = '175px'; wrapper.style.width = '175px'; wrapper.style.height = '175px';
-        document.getElementById('form-image-label').textContent = "Copertă (175x175)";
-        document.getElementById('modal-category-badge').textContent = "Media";
+        if (document.getElementById('form-image-label')) document.getElementById('form-image-label').textContent = "Copertă (175x175)";
+        if (document.getElementById('modal-category-badge')) document.getElementById('modal-category-badge').textContent = "Media";
     }
 }
 
 function generateFormFieldsHTML() {
     const container = document.getElementById('dynamic-form-fields');
+    if (!container) return;
+    
     if (currentCategory === 'filme') {
         container.innerHTML = `
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -457,15 +501,19 @@ function setAdminUI(enabled) {
     const badge = document.getElementById('admin-badge');
 
     if (enabled) {
-        toggleBtn.innerHTML = '<i class="fa-solid fa-right-from-bracket mr-1.5"></i> Blocare date';
-        toggleBtn.className = "px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-xl transition shadow-lg shadow-red-950/30 whitespace-nowrap";
-        addBtn.classList.remove('hidden');
-        badge.classList.remove('hidden');
+        if (toggleBtn) {
+            toggleBtn.innerHTML = '<i class="fa-solid fa-right-from-bracket mr-1.5"></i> Blocare date';
+            toggleBtn.className = "px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-xl transition shadow-lg shadow-red-950/30 whitespace-nowrap";
+        }
+        if (addBtn) addBtn.classList.remove('hidden');
+        if (badge) badge.classList.remove('hidden');
     } else {
-        toggleBtn.innerHTML = '<i class="fa-solid fa-lock-open mr-1.5"></i> Actualizare date';
-        toggleBtn.className = "px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition shadow-lg shadow-blue-950/30 whitespace-nowrap";
-        addBtn.classList.add('hidden');
-        badge.classList.add('hidden');
+        if (toggleBtn) {
+            toggleBtn.innerHTML = '<i class="fa-solid fa-lock-open mr-1.5"></i> Actualizare date';
+            toggleBtn.className = "px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition shadow-lg shadow-blue-950/30 whitespace-nowrap";
+        }
+        if (addBtn) addBtn.classList.add('hidden');
+        if (badge) badge.classList.add('hidden');
         closeModal();
     }
 }
@@ -480,96 +528,120 @@ function openModal(mode, index = null) {
     const codInput = document.getElementById('form-cod');
     const importZone = document.getElementById('excel-import-zone');
     
-    modal.classList.remove('hidden');
+    if (modal) modal.classList.remove('hidden');
     
     if (mode === 'add') {
-        document.getElementById('form-edit-index').value = "";
-        deleteBtn.classList.add('hidden');
-        codInput.disabled = false;
-        codInput.classList.remove('opacity-50', 'cursor-not-allowed');
+        if (document.getElementById('form-edit-index')) document.getElementById('form-edit-index').value = "";
+        if (deleteBtn) deleteBtn.classList.add('hidden');
+        if (codInput) {
+            codInput.disabled = false;
+            codInput.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
         
         if (currentCategory === 'filme') {
-            importZone.classList.remove('hidden');
+            if (importZone) importZone.classList.remove('hidden');
             let maxNum = 0;
-            database.filme.forEach(f => {
-                if (f.cod && f.cod.startsWith("F25-")) {
-                    const numPart = parseInt(f.cod.replace("F25-", ""));
-                    if (!isNaN(numPart) && numPart > maxNum) maxNum = numPart;
-                }
-            });
-            codInput.value = "F25-" + String(maxNum + 1).padStart(3, '0');
+            if (database && Array.isArray(database.filme)) {
+                database.filme.forEach(f => {
+                    if (f.cod && f.cod.startsWith("F25-")) {
+                        const numPart = parseInt(f.cod.replace("F25-", ""));
+                        if (!isNaN(numPart) && numPart > maxNum) maxNum = numPart;
+                    }
+                });
+            }
+            if (codInput) codInput.value = "F25-" + String(maxNum + 1).padStart(3, '0');
         } else {
-            importZone.classList.add('hidden');
+            if (importZone) importZone.classList.add('hidden');
+            if (codInput) {
+                let prefix = currentCategory === 'muzica' ? 'M26-' : 'C26-';
+                let maxNum = 0;
+                if (database && Array.isArray(database[currentCategory])) {
+                    database[currentCategory].forEach(item => {
+                        if (item.cod && item.cod.startsWith(prefix)) {
+                            const numPart = parseInt(item.cod.replace(prefix, ""));
+                            if (!isNaN(numPart) && numPart > maxNum) maxNum = numPart;
+                        }
+                    });
+                }
+                codInput.value = prefix + String(maxNum + 1).padStart(3, '0');
+            }
         }
         
         resetFormFields(false);
     } else if (mode === 'edit' && index !== null) {
-        document.getElementById('form-edit-index').value = index;
-        deleteBtn.classList.remove('hidden');
-        importZone.classList.add('hidden'); 
-        codInput.disabled = true;
-        codInput.classList.add('opacity-50', 'cursor-not-allowed');
+        if (document.getElementById('form-edit-index')) document.getElementById('form-edit-index').value = index;
+        if (deleteBtn) deleteBtn.classList.remove('hidden');
+        if (importZone) importZone.classList.add('hidden'); 
+        if (codInput) {
+            codInput.disabled = true;
+            codInput.classList.add('opacity-50', 'cursor-not-allowed');
+        }
         fillFormValues(index);
     }
 }
 
 function closeModal() { 
-    document.getElementById('crud-modal').classList.add('hidden'); 
+    const modal = document.getElementById('crud-modal');
+    if (modal) modal.classList.add('hidden'); 
 }
 
-// Mapare proxy imagini
 function updateImagePreview(url) {
     const icon = document.getElementById('image-placeholder-icon');
     const text = document.getElementById('image-placeholder-text');
     const img = document.getElementById('image-preview-element');
+    
+    if (!img) return;
+
     if (url && url.trim() !== "" && url.toLowerCase().startsWith('http')) {
         let cleanUrl = url.trim();
         let proxyUrl = "https://images.weserv.nl/?url=" + encodeURIComponent(cleanUrl.replace(/^https?:\/\//i, ''));
         
         img.src = proxyUrl; 
         img.classList.remove('hidden'); 
-        icon.classList.add('hidden'); 
-        text.classList.add('hidden');
+        if (icon) icon.classList.add('hidden'); 
+        if (text) text.classList.add('hidden');
     } else {
         img.src = ""; 
         img.classList.add('hidden'); 
-        icon.classList.remove('hidden'); 
-        text.classList.remove('hidden');
+        if (icon) icon.classList.remove('hidden'); 
+        if (text) text.classList.remove('hidden');
     }
 }
 
 function fillFormValues(index) {
+    if (!database[currentCategory] || !database[currentCategory][index]) return;
     const item = database[currentCategory][index];
-    document.getElementById('form-cod').value = item.cod || '';
-    document.getElementById('form-titlu').value = item.titlu || '';
-    document.getElementById('form-tip').value = item.tip || '';
-    if(document.getElementById('form-gen')) document.getElementById('form-gen').value = item.gen || '';
-    if(document.getElementById('form-an')) document.getElementById('form-an').value = item.an || '';
-    if(document.getElementById('form-url-img')) {
+    
+    if (document.getElementById('form-cod')) document.getElementById('form-cod').value = item.cod || '';
+    if (document.getElementById('form-titlu')) document.getElementById('form-titlu').value = item.titlu || '';
+    if (document.getElementById('form-tip')) document.getElementById('form-tip').value = item.tip || '';
+    if (document.getElementById('form-gen')) document.getElementById('form-gen').value = item.gen || '';
+    if (document.getElementById('form-an')) document.getElementById('form-an').value = item.an || '';
+    if (document.getElementById('form-url-img')) {
         document.getElementById('form-url-img').value = item.url_img || '';
         updateImagePreview(item.url_img);
     }
-    if(document.getElementById('form-observatii')) document.getElementById('form-observatii').value = item.observatii || '';
+    if (document.getElementById('form-observatii')) document.getElementById('form-observatii').value = item.observatii || '';
 
     if (currentCategory === 'filme') {
-        document.getElementById('form-status').value = item.status || 'De vizionat';
-        document.getElementById('form-regizor').value = item.regizor || '';
-        document.getElementById('form-durata').value = item.durata || '';
-        document.getElementById('form-actori').value = item.actori || '';
-        document.getElementById('form-imdb').value = item.imdb || '';
+        if (document.getElementById('form-status')) document.getElementById('form-status').value = item.status || 'De vizionat';
+        if (document.getElementById('form-regizor')) document.getElementById('form-regizor').value = item.regizor || '';
+        if (document.getElementById('form-durata')) document.getElementById('form-durata').value = item.durata || '';
+        if (document.getElementById('form-actori')) document.getElementById('form-actori').value = item.actori || '';
+        if (document.getElementById('form-imdb')) document.getElementById('form-imdb').value = item.imdb || '';
     } else {
-        if(document.getElementById('form-autor')) document.getElementById('form-autor').value = item.autor || '';
+        if (document.getElementById('form-autor')) document.getElementById('form-autor').value = item.autor || '';
     }
 }
 
 function saveElement(event) {
-    event.preventDefault();
+    if (event && typeof event.preventDefault === 'function') event.preventDefault();
     if (!isAdmin) return;
 
-    const idxStr = document.getElementById('form-edit-index').value;
-    const cod = document.getElementById('form-cod').value.trim();
-    const titlu = document.getElementById('form-titlu').value.trim();
-    const tip = document.getElementById('form-tip').value;
+    const idxStr = document.getElementById('form-edit-index') ? document.getElementById('form-edit-index').value : "";
+    const cod = document.getElementById('form-cod') ? document.getElementById('form-cod').value.trim() : "";
+    const titlu = document.getElementById('form-titlu') ? document.getElementById('form-titlu').value.trim() : "";
+    const tip = document.getElementById('form-tip') ? document.getElementById('form-tip').value : "";
     const gen = document.getElementById('form-gen') ? document.getElementById('form-gen').value.trim() : '';
     const url_img = document.getElementById('form-url-img') ? document.getElementById('form-url-img').value.trim() : '';
     const observatii = document.getElementById('form-observatii') ? document.getElementById('form-observatii').value.trim() : '-';
@@ -577,18 +649,22 @@ function saveElement(event) {
     let item = { cod, titlu, tip, gen, url_img, observatii };
 
     if (currentCategory === 'filme') {
-        item.status = document.getElementById('form-status').value;
-        item.an = document.getElementById('form-an').value.trim();
-        item.regizor = document.getElementById('form-regizor').value.trim();
-        item.durata = document.getElementById('form-durata').value.trim();
-        item.actori = document.getElementById('form-actori').value.trim();
-        item.imdb = document.getElementById('form-imdb').value.trim();
+        item.status = document.getElementById('form-status') ? document.getElementById('form-status').value : 'De vizionat';
+        item.an = document.getElementById('form-an') ? document.getElementById('form-an').value.trim() : '';
+        item.regizor = document.getElementById('form-regizor') ? document.getElementById('form-regizor').value.trim() : '';
+        item.durata = document.getElementById('form-durata') ? document.getElementById('form-durata').value.trim() : '';
+        item.actori = document.getElementById('form-actori') ? document.getElementById('form-actori').value.trim() : '';
+        item.imdb = document.getElementById('form-imdb') ? document.getElementById('form-imdb').value.trim() : '';
     } else {
-        item.autor = document.getElementById('form-autor').value.trim();
+        item.autor = document.getElementById('form-autor') ? document.getElementById('form-autor').value.trim() : '';
+    }
+
+    if (!database[currentCategory]) {
+        database[currentCategory] = [];
     }
 
     if (idxStr === "") {
-        if (database[currentCategory].some(x => x.cod.toLowerCase() === cod.toLowerCase())) {
+        if (database[currentCategory].some(x => x.cod && x.cod.toLowerCase() === cod.toLowerCase())) {
             alert("Atenție! Acest Cod Element există deja în catalog."); return;
         }
         database[currentCategory].push(item);
@@ -604,7 +680,7 @@ function saveElement(event) {
 
 function deleteCurrentElement() {
     if (!isAdmin) return;
-    const idxStr = document.getElementById('form-edit-index').value;
+    const idxStr = document.getElementById('form-edit-index') ? document.getElementById('form-edit-index').value : "";
     if (idxStr !== "") {
         if (confirm("Sigur doriți să ștergeți definitiv acest element?")) {
             database[currentCategory].splice(parseInt(idxStr), 1);
@@ -617,11 +693,16 @@ function deleteCurrentElement() {
 }
 
 function resetFormFields(clearCod = true) {
-    const idx = document.getElementById('form-edit-index').value;
-    const oldCod = document.getElementById('form-cod').value;
-    document.getElementById('crud-form').reset();
-    document.getElementById('form-edit-index').value = idx;
-    if (!clearCod) {
+    const form = document.getElementById('crud-form');
+    if (!form) return;
+    
+    const idx = document.getElementById('form-edit-index') ? document.getElementById('form-edit-index').value : "";
+    const oldCod = document.getElementById('form-cod') ? document.getElementById('form-cod').value : "";
+    
+    form.reset();
+    
+    if (document.getElementById('form-edit-index')) document.getElementById('form-edit-index').value = idx;
+    if (!clearCod && document.getElementById('form-cod')) {
         document.getElementById('form-cod').value = oldCod;
     }
     updateImagePreview("");
