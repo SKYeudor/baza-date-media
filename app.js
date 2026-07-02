@@ -255,9 +255,15 @@ function handleSearch(event) {
     if (document.getElementById('filter-status')) activeFilters.status = document.getElementById('filter-status').value;
     if (document.getElementById('filter-an')) activeFilters.an = document.getElementById('filter-an').value;
     if (document.getElementById('filter-text1')) activeFilters.text1 = document.getElementById('filter-text1').value.trim().toLowerCase();
-    if (document.getElementById('filter-text2')) activeFilters.text2 = document.getElementById('filter-text2').value.trim().toLowerCase();
+    if (document.getElementById('filter-text2')) acceptSearchInput2();
     
     renderTable();
+}
+
+function acceptSearchInput2() {
+    if (document.getElementById('filter-text2')) {
+        activeFilters.text2 = document.getElementById('filter-text2').value.trim().toLowerCase();
+    }
 }
 
 function resetCriteria() {
@@ -528,7 +534,7 @@ function generateFormFieldsHTML() {
                 <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">URL Afiș</label><input type="url" id="form-url-img" oninput="updateImagePreview(this.value)" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
                 <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Link URL IMDB</label><input type="url" id="form-imdb" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
             </div>
-            <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Observații</label><input type="text" id="form-observatii" placeholder="Adaugă observații sau detalii utile..." class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
+            <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Observații</label><input type="text" id="form-observatii" placeholder="Adaugă observații..." class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
         `;
     } else if (currentCategory === 'muzica') {
         container.innerHTML = `
