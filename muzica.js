@@ -26,7 +26,7 @@
         return Array.from(aniSet).sort((a, b) => b - a);
     }
 
-    // 1. FILTRE SPECIFICE PENTRU CATEGORIA MUZICĂ
+    // 1. FILTRE SPECIFICE PENTRU CATEGORIA MUZICĂ (FĂRĂ STATUS)
     window.buildFiltersUI = function() {
         if (window.currentCategory !== 'muzica') {
             if (_origBuildFiltersUI) _origBuildFiltersUI();
@@ -44,7 +44,7 @@
         });
 
         container.innerHTML = `
-            <div class="flex flex-col shrink-0 min-w-[130px]">
+            <div class="flex flex-col shrink-0 min-w-[150px]">
                 <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tip Album</label>
                 <select id="filter-tip" onchange="handleSearch()" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
                     <option value="Toate">Toate</option>
@@ -55,39 +55,29 @@
                     <option value="Bootleg">Bootleg</option>
                 </select>
             </div>
-            <div class="flex flex-col shrink-0 min-w-[140px]">
-                <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Status audiție</label>
-                <select id="filter-status" onchange="handleSearch()" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
-                    <option value="Toate">Toate</option>
-                    <option value="Ascultat">Ascultat</option>
-                    <option value="Neascultat">Neascultat</option>
-                    <option value="Favorit">Favorit</option>
-                </select>
-            </div>
-            <div class="flex flex-col shrink-0 min-w-[110px]">
+            <div class="flex flex-col shrink-0 min-w-[120px]">
                 <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">An lansare</label>
                 <select id="filter-an" onchange="handleSearch()" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
                     ${anOptionsHtml}
                 </select>
             </div>
-            <div class="flex flex-col flex-1 min-w-[180px]">
+            <div class="flex flex-col flex-1 min-w-[200px]">
                 <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Caută după Artist / Trupă</label>
                 <input type="text" id="filter-text1" oninput="handleSearch()" placeholder="Scrie artist..." class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500">
             </div>
-            <div class="flex flex-col flex-1 min-w-[180px]">
+            <div class="flex flex-col flex-1 min-w-[200px]">
                 <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Caută după Titlu Album / Piese</label>
                 <input type="text" id="filter-text2" oninput="handleSearch()" placeholder="Scrie titlu..." class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500">
             </div>
         `;
 
         if (document.getElementById('filter-tip')) document.getElementById('filter-tip').value = window.activeFilters.tip || "Toate";
-        if (document.getElementById('filter-status')) document.getElementById('filter-status').value = window.activeFilters.status || "Toate";
         if (document.getElementById('filter-an')) document.getElementById('filter-an').value = window.activeFilters.an || "Toate";
         if (document.getElementById('filter-text1')) document.getElementById('filter-text1').value = window.activeFilters.text1 || "";
         if (document.getElementById('filter-text2')) document.getElementById('filter-text2').value = window.activeFilters.text2 || "";
     };
 
-    // 2. STRUCTURA FIȘĂ DE COLOANE (CELE 6 STRATURI PENTRU TABELUL MUZICAL)
+    // 2. STRUCTURA FIȘĂ DE COLOANE
     window.buildTableHeaderUI = function() {
         if (window.currentCategory !== 'muzica') {
             if (_origBuildTableHeaderUI) _origBuildTableHeaderUI();
@@ -110,7 +100,7 @@
         `;
     };
 
-    // 3. DESENAREA TABELULUI ȘI FILTRAREA ELEMENTELOR DIN CATALOGUL DE MUZICĂ
+    // 3. DESENAREA TABELULUI ȘI FILTRAREA (FĂRĂ STATUS)
     window.renderTable = function() {
         if (window.currentCategory !== 'muzica') {
             if (_origRenderTable) _origRenderTable();
@@ -128,7 +118,6 @@
         
         let filteredList = list.filter((item) => {
             if (window.activeFilters.tip && window.activeFilters.tip !== "Toate" && item.tip !== window.activeFilters.tip) return false;
-            if (window.activeFilters.status && window.activeFilters.status !== "Toate" && item.status !== window.activeFilters.status) return false;
             if (window.activeFilters.an && window.activeFilters.an !== "Toate" && item.an !== window.activeFilters.an) return false;
             
             if (window.activeFilters.text1) {
@@ -183,7 +172,7 @@
         if (countEl) countEl.textContent = `${filteredList.length} elemente muzicale identificate`;
     };
 
-    // 4. GENERAREA FORMULARULUI DE EDITARE/ADĂUGARE SPECIFIC MUZICII
+    // 4. GENERAREA FORMULARULUI DE EDITARE/ADĂUGARE (FĂRĂ CÂMPUL STATUS)
     window.generateFormFieldsHTML = function() {
         if (window.currentCategory !== 'muzica') {
             if (_origGenerateFormFieldsHTML) _origGenerateFormFieldsHTML();
@@ -199,25 +188,15 @@
                     <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Cod Element *</label>
                     <input type="text" id="form-cod" required class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
                 </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div class="flex flex-col">
-                        <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tip Album</label>
-                        <select id="form-tip" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
-                            <option value="Studio">Studio</option>
-                            <option value="Live">Live</option>
-                            <option value="Compilație">Compilație</option>
-                            <option value="Single">Single</option>
-                            <option value="Bootleg">Bootleg</option>
-                        </select>
-                    </div>
-                    <div class="flex flex-col">
-                        <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Status *</label>
-                        <select id="form-status" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
-                            <option value="Ascultat">Ascultat</option>
-                            <option value="Neascultat">Neascultat</option>
-                            <option value="Favorit">Favorit</option>
-                        </select>
-                    </div>
+                <div class="flex flex-col">
+                    <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tip Album</label>
+                    <select id="form-tip" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
+                        <option value="Studio">Studio</option>
+                        <option value="Live">Live</option>
+                        <option value="Compilație">Compilație</option>
+                        <option value="Single">Single</option>
+                        <option value="Bootleg">Bootleg</option>
+                    </select>
                 </div>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -249,7 +228,7 @@
         `;
     };
 
-    // 5. COMPLETAREA VALORILOR LA APĂSAREA BUTONULUI DE EDITARE
+    // 5. COMPLETAREA VALORILOR LA APĂSAREA BUTONULUI DE EDITARE (FĂRĂ STATUS)
     window.fillFormValues = function(index) {
         if (window.currentCategory !== 'muzica') {
             if (_origFillFormValues) _origFillFormValues(index);
@@ -261,7 +240,6 @@
         if (document.getElementById('form-cod')) document.getElementById('form-cod').value = item.cod || '';
         if (document.getElementById('form-titlu')) document.getElementById('form-titlu').value = item.titlu || '';
         if (document.getElementById('form-tip')) document.getElementById('form-tip').value = item.tip || 'Studio';
-        if (document.getElementById('form-status')) document.getElementById('form-status').value = item.status || 'Ascultat';
         if (document.getElementById('form-gen')) document.getElementById('form-gen').value = item.gen || '';
         if (document.getElementById('form-an')) document.getElementById('form-an').value = item.an || '';
         if (document.getElementById('form-autor')) document.getElementById('form-autor').value = item.autor || '';
@@ -308,7 +286,7 @@
         }
     };
 
-    // 8. ALGORITMUL DE PRELUARE DATE DIN EXCEL (FORMAT CONFORM PAȘAPORT: ARTIST | TITLU | AN | GEN)
+    // 8. ALGORITMUL DE IMPORT (FĂRĂ LOGICA DE STATUS)
     window.processExcelPaste = function() {
         if (window.currentCategory !== 'muzica') {
             if (_origProcessExcelPaste) _origProcessExcelPaste();
@@ -325,7 +303,6 @@
         }
 
         const tipGlobal = document.getElementById('form-tip') ? document.getElementById('form-tip').value : "Single";
-        const statusGlobal = document.getElementById('form-status') ? document.getElementById('form-status').value : "Ascultat";
 
         const linii = txt.split('\n');
         let elementeAdaugate = 0;
@@ -359,7 +336,6 @@
                 autor: artist || "-",
                 titlu: titlu || "-",
                 tip: tipGlobal,
-                status: statusGlobal,
                 gen: gen,
                 an: an,
                 url_img: "",
@@ -382,5 +358,5 @@
         }
     };
 
-    console.log("Sistem: Modulul Muzică s-a activat modular și a interceptat cu succes funcțiile globale.");
+    console.log("Sistem: Modulul Muzică funcționează curat, fără câmpul Status.");
 })();
