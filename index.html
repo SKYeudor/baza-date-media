@@ -117,16 +117,16 @@
                 </div>
 
                 <div id="excel-import-zone" class="hidden mt-6 pt-4 border-t border-gray-700/60 bg-gray-900/40 p-4 rounded-xl border border-gray-700">
-                    <h3 class="text-xs font-bold text-blue-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                        <i class="fa-solid fa-file-import"></i> Caseta de Vărsare Date Excel (Filme & Seriale)
+                    <h3 id="excel-zone-title" class="text-xs font-bold text-blue-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                        <i class="fa-solid fa-file-import"></i> Caseta de Export Date Excel
                     </h3>
-                    <p class="text-[11px] text-gray-400 mb-2">
-                        Sistemul va asocia automat datele de mai jos cu <strong>Tipul</strong>, <strong>Statusul</strong> și <strong>Anul</strong> selectate de tine în casetele de mai sus. (Structură Excel obligatorie: Col. A: Titlu, Col. B: Distribuție, Col. C: Gen, Col. D: Durată, Col. E: IMDB).
+                    <p id="excel-zone-desc" class="text-[11px] text-gray-400 mb-2">
+                        Sistemul va asocia automat datele importate cu structura dorită.
                     </p>
-                    <textarea id="excel-paste-area" rows="3" placeholder="Lipeste tabel xlsx aici" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-xl text-xs text-gray-300 font-mono focus:outline-none focus:border-blue-500 placeholder-gray-600"></textarea>
+                    <textarea id="excel-paste-area" rows="3" placeholder="Lipește rândurile copiate din Excel aici..." class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-xl text-xs text-gray-300 font-mono focus:outline-none focus:border-blue-500 placeholder-gray-600"></textarea>
                     <div class="mt-2 text-right">
                         <button type="button" onclick="processExcelPaste()" class="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg transition shadow-md">
-                            <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Execută vărsarea datelor
+                            <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Execută exportul datelor
                         </button>
                     </div>
                 </div>
