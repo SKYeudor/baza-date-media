@@ -5,7 +5,7 @@ const ADMIN_PASSWORD = "bra$ov4";
 let isAdmin = false; 
 let currentCategory = 'filme';
 let activeFilters = {};
-let currentImportMode = 'xlsx'; // Implicit tabel Excel
+let currentImportMode = 'xlsx'; 
 
 let currentSortKey = 'titlu';
 let currentSortOrder = 'asc'; 
@@ -49,7 +49,7 @@ if (database.filme.length === 0 && database.muzica.length === 0 && database.cart
 }
 
 // ==========================================
-// MANAGEMENT MODURI DE IMPORT (TAB-URI)
+// MANAGEMENT MODURI DE IMPORT (TAB-URI VIZIBILE)
 // ==========================================
 function switchImportMode(mode) {
     currentImportMode = mode;
@@ -61,17 +61,18 @@ function switchImportMode(mode) {
     if (!btnXlsx || !btnTxt || !txtArea || !infoText) return;
 
     if (mode === 'xlsx') {
-        btnXlsx.className = "px-3 py-1 bg-blue-600 text-white rounded-md transition shadow";
-        btnTxt.className = "px-3 py-1 text-gray-400 hover:text-white rounded-md transition";
-        txtArea.placeholder = "Lipește tabel xlsx aici (Titlu [Tab] Actori [Tab] Gen...)....";
-        infoText.innerHTML = `Sistemul va asocia automat datele din tabel cu <strong>Tipul</strong> selectat în caseta de mai sus.`;
+        btnXlsx.className = "px-4 py-2 text-xs font-bold uppercase rounded-lg bg-blue-600 text-white shadow-md transition-all cursor-pointer";
+        btnTxt.className = "px-4 py-2 text-xs font-bold uppercase rounded-lg bg-gray-800 text-gray-400 hover:text-white transition-all cursor-pointer";
+        txtArea.placeholder = "Lipește rândurile copiate din Excel aici (Titlu [Tab] Actori [Tab] Gen...)....";
+        infoText.innerHTML = `<i class="fa-solid fa-circle-info text-blue-400 mr-1"></i> Sistemul va asocia automat datele din tabel cu <strong>Tipul</strong> selectat în caseta de mai sus.`;
     } else {
-        btnTxt.className = "px-3 py-1 bg-blue-600 text-white rounded-md transition shadow";
-        btnXlsx.className = "px-3 py-1 text-gray-400 hover:text-white rounded-md transition";
-        txtArea.placeholder = "Lipește structura arborescentă text (Tree) aici...";
-        infoText.innerHTML = `Sistemul va procesa structura de directoare. Va detecta automat tipul din folderele principale (ex: <em>Live Albums</em> devine Tip: <strong>Live Album</strong>, <em>Studio Albums</em> devine Tip: <strong>Studio Album</strong>) și va extrage Anul și Titlul.`;
+        btnTxt.className = "px-4 py-2 text-xs font-bold uppercase rounded-lg bg-blue-600 text-white shadow-md transition-all cursor-pointer";
+        btnXlsx.className = "px-4 py-2 text-xs font-bold uppercase rounded-lg bg-gray-800 text-gray-400 hover:text-white transition-all cursor-pointer";
+        txtArea.placeholder = "Lipește structura arborescentă text (Tree) generată din foldere aici...";
+        infoText.innerHTML = `<i class="fa-solid fa-folder-tree text-amber-400 mr-1"></i> Mod inteligent arborescent detectat. Sistemul va citi folderele (ex: <em>Live Albums</em> devine automat Tip: <strong>Live Album</strong>, <em>Studio Albums</em> devine Tip: <strong>Studio Album</strong>) și va extrage separat Anul și Titlul.`;
     }
     txtArea.value = "";
+    txtArea.focus();
 }
 
 function executeSelectedImport() {
@@ -91,19 +92,17 @@ function processTreeTxtPaste() {
     
     const txt = pasteArea.value;
     if (!txt.trim()) {
-        alert("Caseta este goală! Te rog lipsește datele text ale structurii arborescente.");
+        alert("Caseta este goală! Vă rugăm să lipiți structura text.");
         return;
     }
 
-    // Preluăm artistul curent din formularul principal dacă există, altfel lăsăm implicit filtru sau Deep Purple
     const artistFormular = document.getElementById('form-autor') ? document.getElementById('form-autor').value.trim() : "";
     const artistImplicit = artistFormular || "Deep Purple";
 
     const linii = txt.split('\n');
     let elementeAdaugate = 0;
-    let tipCurentDetectat = "Studio Album"; // Valoare sigură de rezervă
+    let tipCurentDetectat = "Studio Album"; 
 
-    // Aflăm ultimul număr de index pentru generarea codurilor unice în categoria curentă
     let prefix = currentCategory === 'muzica' ? 'M26-' : (currentCategory === 'carti' ? 'C26-' : 'F25-');
     let maxNum = 0;
     if (database && Array.isArray(database[currentCategory])) {
@@ -119,7 +118,6 @@ function processTreeTxtPaste() {
         let curatata = linie.trim();
         if (!curatata) return;
 
-        // 1. Detecție dinamică a secțiunii/folderului părinte din structura grafică
         if (curatata.toLowerCase().includes('live albums')) {
             tipCurentDetectat = "Live Album";
             return;
@@ -129,12 +127,8 @@ function processTreeTxtPaste() {
             return;
         }
 
-        // 2. Curățare caractere grafice specifice comenzii tree
-        // Eliminăm caracterele structurale precum +---, | , \--- și spațiile multiple
         curatata = curatata.replace(/[|+\\\-]/g, '').trim();
 
-        // 3. Extragere An și Titlu folosind expresii regulate
-        // Căutăm tiparul [XXXX] la începutul liniei curate
         const regexAn = /^\[(\d{4})\](.*)$/;
         const match = curatata.match(regexAn);
 
@@ -152,7 +146,7 @@ function processTreeTxtPaste() {
                     tip: tipCurentDetectat,
                     gen: "-",
                     url_img: "",
-                    observatii: "-"
+                    observatii: `An lansare: ${an}`
                 };
 
                 if (currentCategory === 'muzica' || currentCategory === 'carti') {
@@ -164,11 +158,6 @@ function processTreeTxtPaste() {
                     obiectNou.durata = "-";
                     obiectNou.actori = "-";
                     obiectNou.imdb = "-";
-                }
-
-                // Ajustări specifice dacă suntem pe categoria muzică pentru a stoca anul în mod coerent în observații sau structură
-                if (currentCategory === 'muzica') {
-                    obiectNou.observatii = `An lansare: ${an}`;
                 }
 
                 database[currentCategory].push(obiectNou);
@@ -183,9 +172,9 @@ function processTreeTxtPaste() {
         renderTable();
         pasteArea.value = ""; 
         closeModal();
-        alert(`Succes! S-au procesat și importat automat ${elementeAdaugate} albume pentru artistul "${artistImplicit}".`);
+        alert(`Import realizat cu succes! S-au adăugat ${elementeAdaugate} albume pentru artistul "${artistImplicit}".`);
     } else {
-        alert("Sistemul nu a găsit nicio linie validă care să conțină tiparul de album cu an [Ex: [1969] Titlu]. Verifică textul introdus.");
+        alert("Format nerecunoscut! Asigurați-vă că textul conține linii de tipul: [An] Titlu Album.");
     }
 }
 
@@ -485,7 +474,7 @@ function processExcelPaste() {
     
     const txt = pasteArea.value.trim();
     if (!txt) {
-        alert("Caseta este goală! Te rog lipsește datele copiate din Excel.");
+        alert("Caseta este goală! Vă rugăm să lipiți datele copiate din Excel.");
         return;
     }
 
@@ -659,14 +648,14 @@ function setAdminUI(enabled) {
     if (enabled) {
         if (toggleBtn) {
             toggleBtn.innerHTML = '<i class="fa-solid fa-right-from-bracket mr-1.5"></i> Blocare date';
-            toggleBtn.className = "px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-xl transition shadow-lg shadow-red-950/30 whitespace-nowrap";
+            toggleBtn.className = "px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-xl transition shadow-lg shadow-red-950/30 whitespace-nowrap cursor-pointer";
         }
         if (addBtn) addBtn.classList.remove('hidden');
         if (badge) badge.classList.remove('hidden');
     } else {
         if (toggleBtn) {
             toggleBtn.innerHTML = '<i class="fa-solid fa-lock-open mr-1.5"></i> Actualizare date';
-            toggleBtn.className = "px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition shadow-lg shadow-blue-950/30 whitespace-nowrap";
+            toggleBtn.className = "px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition shadow-lg shadow-blue-950/30 whitespace-nowrap cursor-pointer";
         }
         if (addBtn) addBtn.classList.add('hidden');
         if (badge) badge.classList.add('hidden');
@@ -678,7 +667,7 @@ function openModal(mode, index = null) {
     if (!isAdmin) return;
     generateFormFieldsHTML();
     applyImageGeometry();
-    switchImportMode('xlsx'); // Resetăm selectorul pe XLSX la fiecare deschidere
+    switchImportMode('xlsx'); 
     
     const modal = document.getElementById('crud-modal');
     const deleteBtn = document.getElementById('form-delete-btn');
