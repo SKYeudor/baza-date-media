@@ -36,7 +36,7 @@ if (database.filme.length === 0 && database.muzica.length === 0 && database.cart
 }
 
 function resetFiltersObject() {
-    activeFilters = { tip: "Toate", status: "Toate", an: "Toate", text1: "", text2: "" };
+    activeFilters = { tip: "Toate", status: "Toate", an_de_la: "", an_pana: "", text1: "", text2: "" };
 }
 
 function switchCategory(cat) {
@@ -45,9 +45,9 @@ function switchCategory(cat) {
         const btn = document.getElementById(`btn-${c}`);
         if (btn) {
             if (c === cat) {
-                btn.className = "px-5 py-2 rounded-lg text-sm font-bold uppercase transition whitespace-nowrap bg-blue-600 text-white shadow-md";
+                btn.className = "px-5 py-2 rounded-lg text-sm font-bold uppercase transition whitespace-nowrap bg-blue-600 text-white shadow-md cursor-pointer";
             } else {
-                btn.className = "px-5 py-2 rounded-lg text-sm font-bold uppercase transition whitespace-nowrap bg-gray-750 text-gray-400 hover:bg-gray-700";
+                btn.className = "px-5 py-2 rounded-lg text-sm font-bold uppercase transition whitespace-nowrap bg-gray-750 text-gray-400 hover:bg-gray-700 cursor-pointer";
             }
         }
     });
@@ -59,32 +59,14 @@ function switchCategory(cat) {
     renderTable();
 }
 
-function getUniqueYearsFromDB() {
-    const aniSet = new Set();
-    if (database && Array.isArray(database[currentCategory])) {
-        database[currentCategory].forEach(f => {
-            if (f.an && f.an !== "-" && f.an.toString().trim() !== "") {
-                aniSet.add(f.an.toString().trim());
-            }
-        });
-    }
-    return Array.from(aniSet).sort((a, b) => b - a);
-}
-
 function buildFiltersUI() {
     const container = document.getElementById('filters-container');
     if (!container) return;
     container.innerHTML = '';
-    
-    const aniUnici = getUniqueYearsFromDB();
-    let anOptionsHtml = '<option value="Toate">Toate</option>';
-    aniUnici.forEach(an => {
-        anOptionsHtml += `<option value="${an}">${an}</option>`;
-    });
 
     if (currentCategory === 'filme') {
         container.innerHTML = `
-            <div class="flex flex-col shrink-0 min-w-[130px]">
+            <div class="flex flex-col shrink-0 min-w-[120px]">
                 <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tip Conținut</label>
                 <select id="filter-tip" onchange="handleSearch()" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
                     <option value="Toate">Toate</option>
@@ -92,7 +74,7 @@ function buildFiltersUI() {
                     <option value="Serial">Serial</option>
                 </select>
             </div>
-            <div class="flex flex-col shrink-0 min-w-[140px]">
+            <div class="flex flex-col shrink-0 min-w-[130px]">
                 <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Status vizionare</label>
                 <select id="filter-status" onchange="handleSearch()" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
                     <option value="Toate">Toate</option>
@@ -101,17 +83,19 @@ function buildFiltersUI() {
                     <option value="In asteptare">In asteptare</option>
                 </select>
             </div>
-            <div class="flex flex-col shrink-0 min-w-[110px]">
-                <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">An lansare</label>
-                <select id="filter-an" onchange="handleSearch()" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
-                    ${anOptionsHtml}
-                </select>
+            <div class="flex flex-col shrink-0 w-20">
+                <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">An de la</label>
+                <input type="number" id="filter-an-de-la" oninput="handleSearch()" placeholder="Ex: 2020" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 font-mono">
             </div>
-            <div class="flex flex-col flex-1 min-w-[180px]">
+            <div class="flex flex-col shrink-0 w-20">
+                <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">An până la</label>
+                <input type="number" id="filter-an-pana" oninput="handleSearch()" placeholder="Ex: 2026" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 font-mono">
+            </div>
+            <div class="flex flex-col flex-1 min-w-[160px]">
                 <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Caută după Actor</label>
                 <input type="text" id="filter-text1" oninput="handleSearch()" placeholder="Scrie actor..." class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500">
             </div>
-            <div class="flex flex-col flex-1 min-w-[180px]">
+            <div class="flex flex-col flex-1 min-w-[160px]">
                 <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Caută după Titlu</label>
                 <input type="text" id="filter-text2" oninput="handleSearch()" placeholder="Scrie titlu..." class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500">
             </div>`;
@@ -123,33 +107,36 @@ function buildFiltersUI() {
             : `<option value="Tiparit">Tiparit</option><option value="Electronic">Electronic</option>`;
             
         container.innerHTML = `
-            <div class="flex flex-col shrink-0 min-w-[140px]">
+            <div class="flex flex-col shrink-0 min-w-[130px]">
                 <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">${labelTip}</label>
                 <select id="filter-tip" onchange="handleSearch()" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
                     <option value="Toate">Toate</option>
                     ${tipOptions}
                 </select>
             </div>
-            <div class="flex flex-col shrink-0 min-w-[110px]">
-                <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">An apariție</label>
-                <select id="filter-an" onchange="handleSearch()" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
-                    ${anOptionsHtml}
-                </select>
+            <div class="flex flex-col shrink-0 w-20">
+                <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">An de la</label>
+                <input type="number" id="filter-an-de-la" oninput="handleSearch()" placeholder="Ex: 2020" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 font-mono">
             </div>
-            <div class="flex flex-col flex-1 min-w-[200px]">
+            <div class="flex flex-col shrink-0 w-20">
+                <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">An până la</label>
+                <input type="number" id="filter-an-pana" oninput="handleSearch()" placeholder="Ex: 2026" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 font-mono">
+            </div>
+            <div class="flex flex-col flex-1 min-w-[180px]">
                 <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">${labelAutor}</label>
                 <input type="text" id="filter-text1" oninput="handleSearch()" placeholder="Scrie..." class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500">
             </div>
-            <div class="flex flex-col flex-1 min-w-[200px]">
+            <div class="flex flex-col flex-1 min-w-[180px]">
                 <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Caută după Titlu</label>
                 <input type="text" id="filter-text2" oninput="handleSearch()" placeholder="Scrie titlu..." class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500">
             </div>`;
     }
     
-    // Restaurare valori selectate anterior
+    // Restaurare valori
     if (document.getElementById('filter-tip')) document.getElementById('filter-tip').value = activeFilters.tip || "Toate";
-    if (document.getElementById('filter-an')) document.getElementById('filter-an').value = activeFilters.an || "Toate";
     if (document.getElementById('filter-status')) document.getElementById('filter-status').value = activeFilters.status || "Toate";
+    if (document.getElementById('filter-an-de-la')) document.getElementById('filter-an-de-la').value = activeFilters.an_de_la || "";
+    if (document.getElementById('filter-an-pana')) document.getElementById('filter-an-pana').value = activeFilters.an_pana || "";
     if (document.getElementById('filter-text1')) document.getElementById('filter-text1').value = activeFilters.text1 || "";
     if (document.getElementById('filter-text2')) document.getElementById('filter-text2').value = activeFilters.text2 || "";
 }
@@ -166,24 +153,25 @@ function buildTableHeaderUI() {
     
     if (currentCategory === 'filme') {
         headerRow.innerHTML = `
-            <th class="p-3 sortable" onclick="handleHeaderSort('titlu')">TITLUL ORIGINAL ${getSortIndicator('titlu')}</th>
-            <th class="p-3 sortable" onclick="handleHeaderSort('actori')">DISTRIBUȚIA (ACTORI) ${getSortIndicator('actori')}</th>
-            <th class="p-3 sortable" onclick="handleHeaderSort('regizor')">REGIZOR ${getSortIndicator('regizor')}</th>
-            <th class="p-3 sortable" onclick="handleHeaderSort('gen')">GEN ${getSortIndicator('gen')}</th>
-            <th class="p-3 sortable w-24" onclick="handleHeaderSort('durata')">DURATA ${getSortIndicator('durata')}</th>
+            <th class="p-3 sortable cursor-pointer" onclick="handleHeaderSort('titlu')">TITLUL ORIGINAL ${getSortIndicator('titlu')}</th>
+            <th class="p-3 sortable cursor-pointer" onclick="handleHeaderSort('actori')">DISTRIBUȚIA (ACTORI) ${getSortIndicator('actori')}</th>
+            <th class="p-3 sortable cursor-pointer" onclick="handleHeaderSort('regizor')">REGIZOR ${getSortIndicator('regizor')}</th>
+            <th class="p-3 sortable cursor-pointer" onclick="handleHeaderSort('gen')">GEN ${getSortIndicator('gen')}</th>
+            <th class="p-3 sortable cursor-pointer w-24" onclick="handleHeaderSort('an')">AN LAUNS. ${getSortIndicator('an')}</th>
+            <th class="p-3 sortable cursor-pointer w-24" onclick="handleHeaderSort('durata')">DURATA ${getSortIndicator('durata')}</th>
             <th class="p-3 text-center w-20">IMDB</th>
-            <th class="p-3 sortable" onclick="handleHeaderSort('observatii')">OBSERVAȚII ${getSortIndicator('observatii')}</th>
+            <th class="p-3 sortable cursor-pointer" onclick="handleHeaderSort('observatii')">OBSERVAȚII ${getSortIndicator('observatii')}</th>
             ${actionsHtml}`;
     } else {
         const headerAutor = currentCategory === 'muzica' ? 'Autor/Artist' : 'Autor';
         headerRow.innerHTML = `
             <th class="p-3 w-20">Cod</th>
-            <th class="p-3 sortable" onclick="handleHeaderSort('autor')">${headerAutor} ${getSortIndicator('autor')}</th>
-            <th class="p-3 sortable" onclick="handleHeaderSort('titlu')">Titlu ${getSortIndicator('titlu')}</th>
+            <th class="p-3 sortable cursor-pointer" onclick="handleHeaderSort('autor')">${headerAutor} ${getSortIndicator('autor')}</th>
+            <th class="p-3 sortable cursor-pointer" onclick="handleHeaderSort('titlu')">Titlu ${getSortIndicator('titlu')}</th>
             <th class="p-3 w-32">Tip</th>
-            <th class="p-3 w-24 sortable" onclick="handleHeaderSort('an')">An ${getSortIndicator('an')}</th>
+            <th class="p-3 w-24 sortable cursor-pointer" onclick="handleHeaderSort('an')">An ${getSortIndicator('an')}</th>
             <th class="p-3">Detalii / Domeniu</th>
-            <th class="p-3 sortable" onclick="handleHeaderSort('observatii')">Observații ${getSortIndicator('observatii')}</th>
+            <th class="p-3 sortable cursor-pointer" onclick="handleHeaderSort('observatii')">Observații ${getSortIndicator('observatii')}</th>
             ${actionsHtml}`;
     }
 }
@@ -203,7 +191,8 @@ function handleSearch(event) {
     if (event && typeof event.preventDefault === 'function') event.preventDefault();
     if (document.getElementById('filter-tip')) activeFilters.tip = document.getElementById('filter-tip').value;
     if (document.getElementById('filter-status')) activeFilters.status = document.getElementById('filter-status').value;
-    if (document.getElementById('filter-an')) activeFilters.an = document.getElementById('filter-an').value;
+    if (document.getElementById('filter-an-de-la')) activeFilters.an_de_la = document.getElementById('filter-an-de-la').value.trim();
+    if (document.getElementById('filter-an-pana')) activeFilters.an_pana = document.getElementById('filter-an-pana').value.trim();
     if (document.getElementById('filter-text1')) activeFilters.text1 = document.getElementById('filter-text1').value.trim().toLowerCase();
     if (document.getElementById('filter-text2')) activeFilters.text2 = document.getElementById('filter-text2').value.trim().toLowerCase();
     renderTable();
@@ -227,8 +216,22 @@ function renderTable() {
     
     let filteredList = list.filter((item) => {
         if (activeFilters.tip && activeFilters.tip !== "Toate" && item.tip !== activeFilters.tip) return false;
-        if (activeFilters.an && activeFilters.an !== "Toate" && item.an && item.an.toString().trim() !== activeFilters.an.toString().trim()) return false;
         if (currentCategory === 'filme' && activeFilters.status && activeFilters.status !== "Toate" && item.status !== activeFilters.status) return false;
+        
+        // Filtrare corectă după INTERVALUL DE ANI ales la căutare
+        if (item.an && item.an !== "-") {
+            const anElement = parseInt(item.an) || 0;
+            if (activeFilters.an_de_la) {
+                const deLa = parseInt(activeFilters.an_de_la) || 0;
+                if (anElement < deLa) return false;
+            }
+            if (activeFilters.an_pana) {
+                const panaLa = parseInt(activeFilters.an_pana) || 0;
+                if (anElement > panaLa) return false;
+            }
+        } else if (activeFilters.an_de_la || activeFilters.an_pana) {
+            return false; // Ascunde elementele fără an valid dacă s-a setat un interval
+        }
         
         if (activeFilters.text1) {
             if (currentCategory === 'filme') {
@@ -263,7 +266,7 @@ function renderTable() {
         const tr = document.createElement('tr');
         tr.className = "hover:bg-gray-750/40 transition border-b border-gray-700/40 align-middle";
         
-        let actionTd = isAdmin ? `<td class="p-3 text-center space-x-1 whitespace-nowrap"><button onclick="openModal('edit', ${originalIndex})" class="p-1.5 text-blue-400 hover:text-blue-300 hover:bg-gray-700 rounded-lg transition" title="Modifică"><i class="fa-solid fa-pen-to-square"></i></button></td>` : '';
+        let actionTd = isAdmin ? `<td class="p-3 text-center space-x-1 whitespace-nowrap"><button onclick="openModal('edit', ${originalIndex})" class="p-1.5 text-blue-400 hover:text-blue-300 hover:bg-gray-700 rounded-lg transition cursor-pointer" title="Modifică"><i class="fa-solid fa-pen-to-square"></i></button></td>` : '';
         const obsAfisat = item.observatii || "-";
         
         if (currentCategory === 'filme') {
@@ -276,6 +279,7 @@ function renderTable() {
                 <td class="p-3 text-xs text-gray-400 italic">${item.actori || '-'}</td>
                 <td class="p-3 text-xs text-gray-400">${item.regizor || '-'}</td>
                 <td class="p-3 text-xs text-gray-400">${item.gen || '-'}</td>
+                <td class="p-3 text-xs text-gray-400 font-mono font-bold text-blue-300">${item.an || '-'}</td>
                 <td class="p-3 text-xs text-gray-400 font-mono">${item.durata || '-'}</td>
                 <td class="p-3 text-center">
                     <a ${imdbAttr} class="${imdbBtnClass} px-2 py-0.5 rounded text-[10px] font-extrabold tracking-tight inline-flex items-center gap-1 transition shadow-sm cursor-pointer">
@@ -290,7 +294,7 @@ function renderTable() {
                 <td class="p-3 font-semibold text-white">${item.autor || '-'}</td>
                 <td class="p-3 text-gray-300 font-medium">${item.titlu}</td>
                 <td class="p-3 text-xs text-blue-300 font-semibold">${item.tip || '-'}</td>
-                <td class="p-3 text-xs text-gray-400 font-mono">${item.an || '-'}</td>
+                <td class="p-3 text-xs text-gray-400 font-mono font-bold text-blue-300">${item.an || '-'}</td>
                 <td class="p-3 text-xs text-gray-400">${item.gen || ''}</td>
                 <td class="p-3 text-xs text-gray-400 max-w-xs truncate" title="${obsAfisat}">${obsAfisat}</td>
                 ${actionTd}`;
@@ -313,7 +317,7 @@ function processExcelPaste() {
 
     const tipGlobal = document.getElementById('form-tip') ? document.getElementById('form-tip').value : "Film";
     const statusGlobal = document.getElementById('form-status') ? document.getElementById('form-status').value : "De vizionat";
-    const anGlobal = (document.getElementById('form-an') && document.getElementById('form-an').value.trim()) || "-";
+    const anGlobal = document.getElementById('form-an') ? document.getElementById('form-an').value : "2026";
 
     const linii = txt.split('\n');
     let elementeAdaugate = 0;
@@ -421,6 +425,12 @@ function generateFormFieldsHTML() {
     const container = document.getElementById('dynamic-form-fields');
     if (!container) return;
     
+    // Generăm automat lista drop-down pentru anii 2020-2035 conform Variantei B selectate
+    let anSelectOptionsHtml = '';
+    for(let an = 2020; an <= 2035; an++) {
+        anSelectOptionsHtml += `<option value="${an}" ${an === 2026 ? 'selected' : ''}>${an}</option>`;
+    }
+    
     if (currentCategory === 'filme') {
         container.innerHTML = `
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -452,8 +462,10 @@ function generateFormFieldsHTML() {
                     <input type="text" id="form-gen" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
                 </div>
                 <div class="flex flex-col">
-                    <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">An lansare</label>
-                    <input type="text" id="form-an" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
+                    <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Anul *</label>
+                    <select id="form-an" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
+                        ${anSelectOptionsHtml}
+                    </select>
                 </div>
             </div>
             <div class="flex flex-col">
@@ -507,8 +519,10 @@ function generateFormFieldsHTML() {
                     </select>
                 </div>
                 <div class="flex flex-col">
-                    <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Anul</label>
-                    <input type="text" id="form-an" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
+                    <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Anul *</label>
+                    <select id="form-an" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
+                        ${anSelectOptionsHtml}
+                    </select>
                 </div>
             </div>
             <div class="flex flex-col">
@@ -638,7 +652,7 @@ function fillFormValues(index) {
     if (document.getElementById('form-titlu')) document.getElementById('form-titlu').value = item.titlu || '';
     if (document.getElementById('form-tip')) document.getElementById('form-tip').value = item.tip || '';
     if (document.getElementById('form-gen')) document.getElementById('form-gen').value = item.gen || '';
-    if (document.getElementById('form-an')) document.getElementById('form-an').value = item.an || '';
+    if (document.getElementById('form-an')) document.getElementById('form-an').value = item.an || '2026';
     
     if (document.getElementById('form-url-img')) {
         document.getElementById('form-url-img').value = item.url_img || '';
@@ -666,7 +680,7 @@ function saveElement(event) {
     const titlu = document.getElementById('form-titlu') ? document.getElementById('form-titlu').value.trim() : "";
     const tip = document.getElementById('form-tip') ? document.getElementById('form-tip').value : "";
     const gen = document.getElementById('form-gen') ? document.getElementById('form-gen').value.trim() : '';
-    const an = document.getElementById('form-an') ? document.getElementById('form-an').value.trim() : '';
+    const an = document.getElementById('form-an') ? document.getElementById('form-an').value : '2026';
     const url_img = document.getElementById('form-url-img') ? document.getElementById('form-url-img').value.trim() : '';
     const observatii = document.getElementById('form-observatii') ? document.getElementById('form-observatii').value.trim() : '-';
     
