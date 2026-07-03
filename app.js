@@ -5,14 +5,13 @@ const ADMIN_PASSWORD = "bra$ov4";
 let isAdmin = false; 
 let currentCategory = 'filme';
 let activeFilters = {};
+let currentImportMode = 'xlsx'; // Implicit tabel Excel
 
 let currentSortKey = 'titlu';
 let currentSortOrder = 'asc'; 
 
-// Structură de bază neutră și sigură
 let database = { filme: [], muzica: [], carti: [] };
 
-// Încărcare inițială securizată
 const storedDb = localStorage.getItem('biblioteca_media_db');
 if (storedDb) {
     try {
@@ -27,11 +26,10 @@ if (storedDb) {
             }
         }
     } catch (e) {
-        console.error("Sistem: Eroare la parsarea bazei de date existente. Se aplică structura curată.", e);
+        console.error("Sistem: Eroare la parsarea bazei de date existente.", e);
     }
 }
 
-// Dacă aplicația este complet nouă sau goală, inserăm un element martor
 if (database.filme.length === 0 && database.muzica.length === 0 && database.carti.length === 0) {
     database.filme.push({ 
         cod: "F25-001", 
@@ -48,6 +46,147 @@ if (database.filme.length === 0 && database.muzica.length === 0 && database.cart
         observatii: "-"
     });
     localStorage.setItem('biblioteca_media_db', JSON.stringify(database));
+}
+
+// ==========================================
+// MANAGEMENT MODURI DE IMPORT (TAB-URI)
+// ==========================================
+function switchImportMode(mode) {
+    currentImportMode = mode;
+    const btnXlsx = document.getElementById('import-mode-xlsx');
+    const btnTxt = document.getElementById('import-mode-txt');
+    const txtArea = document.getElementById('excel-paste-area');
+    const infoText = document.getElementById('import-instructions-text');
+
+    if (!btnXlsx || !btnTxt || !txtArea || !infoText) return;
+
+    if (mode === 'xlsx') {
+        btnXlsx.className = "px-3 py-1 bg-blue-600 text-white rounded-md transition shadow";
+        btnTxt.className = "px-3 py-1 text-gray-400 hover:text-white rounded-md transition";
+        txtArea.placeholder = "Lipește tabel xlsx aici (Titlu [Tab] Actori [Tab] Gen...)....";
+        infoText.innerHTML = `Sistemul va asocia automat datele din tabel cu <strong>Tipul</strong> selectat în caseta de mai sus.`;
+    } else {
+        btnTxt.className = "px-3 py-1 bg-blue-600 text-white rounded-md transition shadow";
+        btnXlsx.className = "px-3 py-1 text-gray-400 hover:text-white rounded-md transition";
+        txtArea.placeholder = "Lipește structura arborescentă text (Tree) aici...";
+        infoText.innerHTML = `Sistemul va procesa structura de directoare. Va detecta automat tipul din folderele principale (ex: <em>Live Albums</em> devine Tip: <strong>Live Album</strong>, <em>Studio Albums</em> devine Tip: <strong>Studio Album</strong>) și va extrage Anul și Titlul.`;
+    }
+    txtArea.value = "";
+}
+
+function executeSelectedImport() {
+    if (currentImportMode === 'xlsx') {
+        processExcelPaste();
+    } else {
+        processTreeTxtPaste();
+    }
+}
+
+// ==========================================
+// IMPORT DATE TIP ARBORE (TREE TXT)
+// ==========================================
+function processTreeTxtPaste() {
+    const pasteArea = document.getElementById('excel-paste-area');
+    if (!pasteArea) return;
+    
+    const txt = pasteArea.value;
+    if (!txt.trim()) {
+        alert("Caseta este goală! Te rog lipsește datele text ale structurii arborescente.");
+        return;
+    }
+
+    // Preluăm artistul curent din formularul principal dacă există, altfel lăsăm implicit filtru sau Deep Purple
+    const artistFormular = document.getElementById('form-autor') ? document.getElementById('form-autor').value.trim() : "";
+    const artistImplicit = artistFormular || "Deep Purple";
+
+    const linii = txt.split('\n');
+    let elementeAdaugate = 0;
+    let tipCurentDetectat = "Studio Album"; // Valoare sigură de rezervă
+
+    // Aflăm ultimul număr de index pentru generarea codurilor unice în categoria curentă
+    let prefix = currentCategory === 'muzica' ? 'M26-' : (currentCategory === 'carti' ? 'C26-' : 'F25-');
+    let maxNum = 0;
+    if (database && Array.isArray(database[currentCategory])) {
+        database[currentCategory].forEach(item => {
+            if (item.cod && item.cod.startsWith(prefix)) {
+                const numPart = parseInt(item.cod.replace(prefix, ""));
+                if (!isNaN(numPart) && numPart > maxNum) maxNum = numPart;
+            }
+        });
+    }
+
+    linii.forEach(linie => {
+        let curatata = linie.trim();
+        if (!curatata) return;
+
+        // 1. Detecție dinamică a secțiunii/folderului părinte din structura grafică
+        if (curatata.toLowerCase().includes('live albums')) {
+            tipCurentDetectat = "Live Album";
+            return;
+        }
+        if (curatata.toLowerCase().includes('studio albums')) {
+            tipCurentDetectat = "Studio Album";
+            return;
+        }
+
+        // 2. Curățare caractere grafice specifice comenzii tree
+        // Eliminăm caracterele structurale precum +---, | , \--- și spațiile multiple
+        curatata = curatata.replace(/[|+\\\-]/g, '').trim();
+
+        // 3. Extragere An și Titlu folosind expresii regulate
+        // Căutăm tiparul [XXXX] la începutul liniei curate
+        const regexAn = /^\[(\d{4})\](.*)$/;
+        const match = curatata.match(regexAn);
+
+        if (match) {
+            const an = match[1].trim();
+            const titlu = match[2].trim();
+
+            if (titlu) {
+                maxNum++;
+                let noulCod = prefix + String(maxNum).padStart(3, '0');
+
+                let obiectNou = {
+                    cod: noulCod,
+                    titlu: titlu,
+                    tip: tipCurentDetectat,
+                    gen: "-",
+                    url_img: "",
+                    observatii: "-"
+                };
+
+                if (currentCategory === 'muzica' || currentCategory === 'carti') {
+                    obiectNou.autor = artistImplicit;
+                } else {
+                    obiectNou.status = "De vizionat";
+                    obiectNou.an = an;
+                    obiectNou.regizor = "-";
+                    obiectNou.durata = "-";
+                    obiectNou.actori = "-";
+                    obiectNou.imdb = "-";
+                }
+
+                // Ajustări specifice dacă suntem pe categoria muzică pentru a stoca anul în mod coerent în observații sau structură
+                if (currentCategory === 'muzica') {
+                    obiectNou.observatii = `An lansare: ${an}`;
+                }
+
+                database[currentCategory].push(obiectNou);
+                elementeAdaugate++;
+            }
+        }
+    });
+
+    if (elementeAdaugate > 0) {
+        localStorage.setItem('biblioteca_media_db', JSON.stringify(database));
+        buildFiltersUI(); 
+        renderTable();
+        pasteArea.value = ""; 
+        closeModal();
+        alert(`Succes! S-au procesat și importat automat ${elementeAdaugate} albume pentru artistul "${artistImplicit}".`);
+    } else {
+        alert("Sistemul nu a găsit nicio linie validă care să conțină tiparul de album cu an [Ex: [1969] Titlu]. Verifică textul introdus.");
+    }
 }
 
 // ==========================================
@@ -144,6 +283,8 @@ function buildFiltersUI() {
                 <select id="filter-tip" onchange="handleSearch()" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
                     <option value="Toate">Toate</option>
                     <option value="Album">Album</option>
+                    <option value="Live Album">Live Album</option>
+                    <option value="Studio Album">Studio Album</option>
                     <option value="Single">Single</option>
                     <option value="Tiparit">Tiparit</option>
                     <option value="Electronic">Electronic</option>
@@ -197,7 +338,7 @@ function buildTableHeaderUI() {
             <th class="p-3 w-20">Cod</th>
             <th class="p-3 sortable" onclick="handleHeaderSort('autor')">Autor/Artist ${getSortIndicator('autor')}</th>
             <th class="p-3 sortable" onclick="handleHeaderSort('titlu')">Titlu ${getSortIndicator('titlu')}</th>
-            <th class="p-3 w-24">Tip</th>
+            <th class="p-3 w-32">Tip</th>
             <th class="p-3">Detalii / Domeniu</th>
             <th class="p-3 sortable" onclick="handleHeaderSort('observatii')">Observații ${getSortIndicator('observatii')}</th>
             ${actionsHtml}
@@ -321,7 +462,7 @@ function renderTable() {
                 <td class="p-3 font-mono text-xs text-blue-400 font-bold">${item.cod || ''}</td>
                 <td class="p-3 font-semibold text-white">${item.autor || '-'}</td>
                 <td class="p-3 text-gray-300 font-medium">${item.titlu}</td>
-                <td class="p-3 text-xs">${item.tip || '-'}</td>
+                <td class="p-3 text-xs text-blue-300 font-semibold">${item.tip || '-'}</td>
                 <td class="p-3 text-xs text-gray-400">${item.gen || ''}</td>
                 <td class="p-3 text-xs text-gray-400 max-w-xs truncate" title="${obsAfisat}">${obsAfisat}</td>
                 ${actionTd}
@@ -336,7 +477,7 @@ function renderTable() {
 }
 
 // ==========================================
-// IMPORT DATE EXCEL
+// IMPORT CLASIC DATE EXCEL (TAB-SEPARATED)
 // ==========================================
 function processExcelPaste() {
     const pasteArea = document.getElementById('excel-paste-area');
@@ -405,9 +546,7 @@ function processExcelPaste() {
         renderTable();
         pasteArea.value = ""; 
         closeModal();
-        alert(`Succes! S-au importat ${elementeAdaugate} elemente cu Tip: "${tipGlobal}", Status: "${statusGlobal}" și An: "${anGlobal}".`);
-    } else {
-        alert("Nu s-a putut procesa nicio linie validă.");
+        alert(`Succes! S-au importat ${elementeAdaugate} elemente.`);
     }
 }
 
@@ -495,19 +634,19 @@ function generateFormFieldsHTML() {
                 <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">URL Afiș</label><input type="url" id="form-url-img" oninput="updateImagePreview(this.value)" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
                 <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Link URL IMDB</label><input type="url" id="form-imdb" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
             </div>
-            <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Observații</label><input type="text" id="form-observatii" placeholder="Adaugă observații sau detalii utile..." class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
+            <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Observații</label><input type="text" id="form-observatii" placeholder="Adaugă observații..." class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
         `;
     } else {
         container.innerHTML = `
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Cod Element *</label><input type="text" id="form-cod" required class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
-                <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tip Format</label><input type="text" id="form-tip" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
+                <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tip Format (Album, Single, etc.)</label><input type="text" id="form-tip" placeholder="Ex: Album Studio" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
             </div>
-            <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Autor / Artist *</label><input type="text" id="form-autor" required class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
+            <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Autor / Artist *</label><input type="text" id="form-autor" required placeholder="Ex: Deep Purple" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
             <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Titlu *</label><input type="text" id="form-titlu" required class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
             <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Gen / Domeniu</label><input type="text" id="form-gen" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
             <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">URL Copertă</label><input type="url" id="form-url-img" oninput="updateImagePreview(this.value)" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
-            <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Observații</label><input type="text" id="form-observatii" placeholder="Adaugă observații sau detalii utile..." class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
+            <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Observații</label><input type="text" id="form-observatii" placeholder="Adaugă observații..." class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
         `;
     }
 }
@@ -539,6 +678,7 @@ function openModal(mode, index = null) {
     if (!isAdmin) return;
     generateFormFieldsHTML();
     applyImageGeometry();
+    switchImportMode('xlsx'); // Resetăm selectorul pe XLSX la fiecare deschidere
     
     const modal = document.getElementById('crud-modal');
     const deleteBtn = document.getElementById('form-delete-btn');
@@ -550,39 +690,23 @@ function openModal(mode, index = null) {
     if (mode === 'add') {
         if (document.getElementById('form-edit-index')) document.getElementById('form-edit-index').value = "";
         if (deleteBtn) deleteBtn.classList.add('hidden');
+        if (importZone) importZone.classList.remove('hidden');
         if (codInput) {
             codInput.disabled = false;
             codInput.classList.remove('opacity-50', 'cursor-not-allowed');
         }
         
-        if (currentCategory === 'filme') {
-            if (importZone) importZone.classList.remove('hidden');
-            let maxNum = 0;
-            if (database && Array.isArray(database.filme)) {
-                database.filme.forEach(f => {
-                    if (f.cod && f.cod.startsWith("F25-")) {
-                        const numPart = parseInt(f.cod.replace("F25-", ""));
-                        if (!isNaN(numPart) && numPart > maxNum) maxNum = numPart;
-                    }
-                });
-            }
-            if (codInput) codInput.value = "F25-" + String(maxNum + 1).padStart(3, '0');
-        } else {
-            if (importZone) importZone.classList.add('hidden');
-            if (codInput) {
-                let prefix = currentCategory === 'muzica' ? 'M26-' : 'C26-';
-                let maxNum = 0;
-                if (database && Array.isArray(database[currentCategory])) {
-                    database[currentCategory].forEach(item => {
-                        if (item.cod && item.cod.startsWith(prefix)) {
-                            const numPart = parseInt(item.cod.replace(prefix, ""));
-                            if (!isNaN(numPart) && numPart > maxNum) maxNum = numPart;
-                        }
-                    });
+        let prefix = currentCategory === 'filme' ? 'F25-' : (currentCategory === 'muzica' ? 'M26-' : 'C26-');
+        let maxNum = 0;
+        if (database && Array.isArray(database[currentCategory])) {
+            database[currentCategory].forEach(item => {
+                if (item.cod && item.cod.startsWith(prefix)) {
+                    const numPart = parseInt(item.cod.replace(prefix, ""));
+                    if (!isNaN(numPart) && numPart > maxNum) maxNum = numPart;
                 }
-                codInput.value = prefix + String(maxNum + 1).padStart(3, '0');
-            }
+            });
         }
+        if (codInput) codInput.value = prefix + String(maxNum + 1).padStart(3, '0');
         
         resetFormFields(false);
     } else if (mode === 'edit' && index !== null) {
@@ -612,7 +736,6 @@ function updateImagePreview(url) {
     if (url && url.trim() !== "" && url.toLowerCase().startsWith('http')) {
         let cleanUrl = url.trim();
         let proxyUrl = "https://images.weserv.nl/?url=" + encodeURIComponent(cleanUrl.replace(/^https?:\/\//i, ''));
-        
         img.src = proxyUrl; 
         img.classList.remove('hidden'); 
         if (icon) icon.classList.add('hidden'); 
@@ -633,7 +756,6 @@ function fillFormValues(index) {
     if (document.getElementById('form-titlu')) document.getElementById('form-titlu').value = item.titlu || '';
     if (document.getElementById('form-tip')) document.getElementById('form-tip').value = item.tip || '';
     if (document.getElementById('form-gen')) document.getElementById('form-gen').value = item.gen || '';
-    if (document.getElementById('form-an')) document.getElementById('form-an').value = item.an || '';
     if (document.getElementById('form-url-img')) {
         document.getElementById('form-url-img').value = item.url_img || '';
         updateImagePreview(item.url_img);
@@ -642,6 +764,7 @@ function fillFormValues(index) {
 
     if (currentCategory === 'filme') {
         if (document.getElementById('form-status')) document.getElementById('form-status').value = item.status || 'De vizionat';
+        if (document.getElementById('form-an')) document.getElementById('form-an').value = item.an || '';
         if (document.getElementById('form-regizor')) document.getElementById('form-regizor').value = item.regizor || '';
         if (document.getElementById('form-durata')) document.getElementById('form-durata').value = item.durata || '';
         if (document.getElementById('form-actori')) document.getElementById('form-actori').value = item.actori || '';
@@ -676,13 +799,11 @@ function saveElement(event) {
         item.autor = document.getElementById('form-autor') ? document.getElementById('form-autor').value.trim() : '';
     }
 
-    if (!database[currentCategory]) {
-        database[currentCategory] = [];
-    }
+    if (!database[currentCategory]) database[currentCategory] = [];
 
     if (idxStr === "") {
         if (database[currentCategory].some(x => x.cod && x.cod.toLowerCase() === cod.toLowerCase())) {
-            alert("Atenție! Acest Cod Element există deja în catalog."); return;
+            alert("Atenție! Acest Cod Element există deja."); return;
         }
         database[currentCategory].push(item);
     } else {
@@ -726,7 +847,7 @@ function resetFormFields(clearCod = true) {
 }
 
 // ==========================================
-// INIȚIALIZARE EVENIMENTE LA PORNIRE
+// INIȚIALIZARE APLICAȚIE
 // ==========================================
 resetFiltersObject();
 switchCategory('filme');
