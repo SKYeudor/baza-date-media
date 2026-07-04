@@ -11,7 +11,6 @@ let currentSortOrder = 'asc';
 
 let database = { filme: [], muzica: [], carti: [] };
 
-// Încărcare inițială a bazei de date
 if (localStorage.getItem('biblioteca_media_db')) {
     database = JSON.parse(localStorage.getItem('biblioteca_media_db'));
 } else {
@@ -26,14 +25,65 @@ if (localStorage.getItem('biblioteca_media_db')) {
         durata: "120 min", 
         actori: "Actor Exemplu", 
         imdb: "https://www.imdb.com", 
+        cinemagia: "",
         url_img: "" 
     });
     localStorage.setItem('biblioteca_media_db', JSON.stringify(database));
 }
 
 // ==========================================
-// FUNCȚII GENERALE ȘI FILTRARE
+// [1] LOGICĂ NOUĂ MODAL AUTENTIFICARE
 // ==========================================
+function openPasswordModal() {
+    if (isAdmin) {
+        // Dacă e deja logat, butonul acționează ca „Blocare date”
+        isAdmin = false;
+        setAdminUI(false);
+        buildTableHeaderUI();
+        renderTable();
+    } else {
+        document.getElementById('password-input').value = "";
+        document.getElementById('password-modal').classList.remove('hidden');
+        setTimeout(() => document.getElementById('password-input').focus(), 100);
+    }
+}
+
+function closePasswordModal() {
+    document.getElementById('password-modal').classList.add('hidden');
+}
+
+function verifyAdminPassword() {
+    const pass = document.getElementById('password-input').value;
+    if (pass === ADMIN_PASSWORD) {
+        isAdmin = true;
+        setAdminUI(true);
+        closePasswordModal();
+        buildTableHeaderUI();
+        renderTable();
+    } else {
+        alert("Parolă incorectă!");
+    }
+}
+
+function setAdminUI(enabled) {
+    const toggleBtn = document.getElementById('admin-toggle-btn');
+    const addBtn = document.getElementById('add-new-btn');
+    const badge = document.getElementById('admin-badge');
+
+    if (enabled) {
+        toggleBtn.innerHTML = '<i class="fa-solid fa-right-from-bracket mr-1.5"></i> Blocare date';
+        toggleBtn.className = "px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-xl transition shadow-lg shadow-red-950/30 whitespace-nowrap cursor-pointer";
+        addBtn.classList.remove('hidden');
+        badge.classList.remove('hidden');
+    } else {
+        toggleBtn.innerHTML = '<i class="fa-solid fa-lock-open mr-1.5"></i> Actualizare date';
+        toggleBtn.className = "px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition shadow-lg shadow-blue-950/30 whitespace-nowrap cursor-pointer";
+        addBtn.classList.add('hidden');
+        badge.classList.add('hidden');
+        closeModal();
+    }
+}
+
 function resetFiltersObject() {
     if (currentCategory === 'muzica' && window.resetMuzicaFiltersObject) {
         window.resetMuzicaFiltersObject();
@@ -148,14 +198,14 @@ function buildFiltersUI() {
     if (document.getElementById('filter-text2')) document.getElementById('filter-text2').value = activeFilters.text2 || "";
 }
 
-// ==========================================
-// LOGICA DE SORTARE ȘI DESENARE TABEL
-// ==========================================
 function getSortIndicator(key) {
     if (currentSortKey !== key) return '<span class="text-gray-600 ml-1 text-[10px]">▲▼</span>';
     return currentSortOrder === 'asc' ? '<span class="text-blue-400 ml-1">▲</span>' : '<span class="text-blue-400 ml-1">▼</span>';
 }
 
+// ==========================================
+// [2] ADĂUGARE COLOANĂ CINEMAGIA ÎN TABEL
+// ==========================================
 function buildTableHeaderUI() {
     if (currentCategory === 'muzica' && window.buildMuzicaTableHeaderUI) {
         window.buildMuzicaTableHeaderUI();
@@ -173,6 +223,7 @@ function buildTableHeaderUI() {
             <th class="p-3 sortable" onclick="handleHeaderSort('gen')">GEN ${getSortIndicator('gen')}</th>
             <th class="p-3 sortable w-24" onclick="handleHeaderSort('durata')">DURATA ${getSortIndicator('durata')}</th>
             <th class="p-3 text-center w-20">IMDB</th>
+            <th class="p-3 text-center w-24">CineMagia</th>
             ${actionsHtml}
         `;
     } else {
@@ -218,6 +269,9 @@ function resetCriteria() {
     renderTable();
 }
 
+// ==========================================
+// [2] RANDARE COLOANĂ NOUĂ CINEMAGIA
+// ==========================================
 function renderTable() {
     if (currentCategory === 'muzica' && window.renderMuzicaTable) {
         window.renderMuzicaTable();
@@ -285,6 +339,10 @@ function renderTable() {
             const imdbBtnClass = hasImdb ? 'imdb-btn-active' : 'imdb-btn-inactive';
             const imdbAttr = hasImdb ? `href="${item.imdb}" target="_blank"` : `onclick="alert('Fără link IMDB valid.')"`;
 
+            const hasCinemagia = item.cinemagia && item.cinemagia.trim() !== "" && item.cinemagia !== "-" && item.cinemagia.toLowerCase().startsWith('http');
+            const cinemagiaBtnClass = hasCinemagia ? 'bg-red-600 text-white font-extrabold hover:bg-red-700' : 'imdb-btn-inactive';
+            const cinemagiaAttr = hasCinemagia ? `href="${item.cinemagia}" target="_blank"` : `onclick="alert('Fără link CineMagia valid.')"`;
+
             tr.innerHTML = `
                 <td class="p-3 font-semibold text-white">${item.titlu}</td>
                 <td class="p-3 text-xs text-gray-400 italic">${item.actori || '-'}</td>
@@ -294,6 +352,11 @@ function renderTable() {
                 <td class="p-3 text-center">
                     <a ${imdbAttr} class="${imdbBtnClass} px-2 py-0.5 rounded text-[10px] font-extrabold tracking-tight inline-flex items-center gap-1 transition shadow-sm cursor-pointer">
                         <i class="fa-brands fa-imdb text-sm"></i> IMDB
+                    </a>
+                </td>
+                <td class="p-3 text-center">
+                    <a ${cinemagiaAttr} class="${cinemagiaBtnClass} px-2 py-0.5 rounded text-[10px] tracking-tight inline-flex items-center gap-1 transition shadow-sm cursor-pointer">
+                        <i class="fa-solid fa-film text-sm"></i> CineMagia
                     </a>
                 </td>
                 ${actionTd}
@@ -315,9 +378,6 @@ function renderTable() {
     document.getElementById('item-count').textContent = `${filteredList.length} elemente identificate`;
 }
 
-// ==========================================
-// VĂRSARE DATE EXCEL
-// ==========================================
 function processExcelPaste() {
     if (currentCategory === 'muzica' && window.processMuzicaExcelPaste) {
         window.processMuzicaExcelPaste();
@@ -372,6 +432,7 @@ function processExcelPaste() {
             durata: durata,
             actori: actori,
             imdb: imdb,
+            cinemagia: "-",
             url_img: ""
         };
 
@@ -391,9 +452,6 @@ function processExcelPaste() {
     }
 }
 
-// ==========================================
-// MANAGEMENT FINAR FORMULAR & MODALE (CRUD)
-// ==========================================
 function applyImageGeometry() {
     const wrapper = document.getElementById('image-wrapper');
     if (currentCategory === 'filme') {
@@ -403,10 +461,14 @@ function applyImageGeometry() {
     } else {
         wrapper.style.minWidth = '175px'; wrapper.style.maxWidth = '175px'; wrapper.style.width = '175px'; wrapper.style.height = '175px';
         document.getElementById('form-image-label').textContent = "Copertă (175x175)";
-        document.getElementById('modal-category-badge').textContent = "Media / Muzică";
+        // [4.i] Redenumire dinamică exactă
+        document.getElementById('modal-category-badge').textContent = "MUZICĂ";
     }
 }
 
+// ==========================================
+// [2] ADĂUGARE CÂMP CINEMAGIA ÎN FORMULAR
+// ==========================================
 function generateFormFieldsHTML() {
     if (currentCategory === 'muzica' && window.generateMuzicaFormFieldsHTML) {
         window.generateMuzicaFormFieldsHTML();
@@ -433,60 +495,32 @@ function generateFormFieldsHTML() {
                 <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Durată / Episoade</label><input type="text" id="form-durata" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
             </div>
             <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">În distribuție (Actori) *</label><input type="text" id="form-actori" required class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
+            <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">URL Afiș</label><input type="url" id="form-url-img" oninput="updateImagePreview(this.value)" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">URL Afiș</label><input type="url" id="form-url-img" oninput="updateImagePreview(this.value)" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
                 <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Link URL IMDB</label><input type="url" id="form-imdb" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
+                <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Link URL CineMagia</label><input type="url" id="form-cinemagia" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
             </div>
-        `;
-    } else {
-        container.innerHTML = `
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Cod Element *</label><input type="text" id="form-cod" required class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
-                <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tip Format</label><input type="text" id="form-tip" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
-            </div>
-            <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Autor / Artist *</label><input type="text" id="form-autor" required class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
-            <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Titlu *</label><input type="text" id="form-titlu" required class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
-            <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Gen / Domeniu</label><input type="text" id="form-gen" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
-            <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">URL Copertă</label><input type="url" id="form-url-img" oninput="updateImagePreview(this.value)" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
         `;
     }
 }
 
-function toggleAdminMode() {
-    if (!isAdmin) {
-        const pass = prompt("Introduceți parola de administrare pentru securizarea datelor:");
-        if (pass === null) return;
-        
-        if (pass === ADMIN_PASSWORD) {
-            isAdmin = true;
-            setAdminUI(true);
-        } else {
-            alert("Parolă incorectă!");
-        }
-    } else {
-        isAdmin = false;
-        setAdminUI(false);
-    }
-    buildTableHeaderUI();
-    renderTable();
-}
-
-function setAdminUI(enabled) {
-    const toggleBtn = document.getElementById('admin-toggle-btn');
-    const addBtn = document.getElementById('add-new-btn');
-    const badge = document.getElementById('admin-badge');
-
-    if (enabled) {
-        toggleBtn.innerHTML = '<i class="fa-solid fa-right-from-bracket mr-1.5"></i> Blocare date';
-        toggleBtn.className = "px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-xl transition shadow-lg shadow-red-950/30 whitespace-nowrap";
-        addBtn.classList.remove('hidden');
-        badge.classList.remove('hidden');
-    } else {
-        toggleBtn.innerHTML = '<i class="fa-solid fa-lock-open mr-1.5"></i> Actualizare date';
-        toggleBtn.className = "px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition shadow-lg shadow-blue-950/30 whitespace-nowrap";
-        addBtn.classList.add('hidden');
-        badge.classList.add('hidden');
-        closeModal();
+// [4.iii] Eliminare descrieri adiționale din Caseta de Import generală
+function setupExcelZoneHTML() {
+    const importZone = document.getElementById('excel-import-zone');
+    if (!importZone) return;
+    
+    if (currentCategory === 'filme') {
+        importZone.innerHTML = `
+            <div class="flex items-center gap-2 text-blue-400 font-bold text-sm uppercase tracking-wide border-b border-gray-700 pb-3 mb-4">
+                <i class="fa-solid fa-file-import"></i> IMPORT DATE
+            </div>
+            <textarea id="excel-paste-area" rows="5" placeholder="Lipește rândurile copiate din Excel aici (Titlu [Tab] Actori/Artist [Tab] Gen...)...." class="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-xs text-gray-200 font-mono focus:outline-none focus:border-blue-500 placeholder-gray-600 mb-3"></textarea>
+            <div class="text-right">
+                <button type="button" onclick="processExcelPaste()" class="px-5 py-2 bg-green-600 hover:bg-green-700 text-white font-bold text-xs rounded-xl transition shadow-lg cursor-pointer">
+                    <i class="fa-solid fa-wand-magic-sparkles mr-1.5"></i> Execută importul datelor
+                </button>
+            </div>
+        `;
     }
 }
 
@@ -500,6 +534,7 @@ function openModal(mode, index = null) {
     const importZone = document.getElementById('excel-import-zone');
     
     modal.classList.remove('hidden');
+    setupExcelZoneHTML();
     
     if (mode === 'add') {
         document.getElementById('form-edit-index').value = "";
@@ -587,8 +622,7 @@ function fillFormValues(index) {
         document.getElementById('form-durata').value = item.durata || '';
         document.getElementById('form-actori').value = item.actori || '';
         document.getElementById('form-imdb').value = item.imdb || '';
-    } else {
-        if(document.getElementById('form-autor')) document.getElementById('form-autor').value = item.autor || '';
+        document.getElementById('form-cinemagia').value = item.cinemagia || '';
     }
 }
 
@@ -617,8 +651,7 @@ function saveElement(event) {
         item.durata = document.getElementById('form-durata').value.trim();
         item.actori = document.getElementById('form-actori').value.trim();
         item.imdb = document.getElementById('form-imdb').value.trim();
-    } else {
-        item.autor = document.getElementById('form-autor').value.trim();
+        item.cinemagia = document.getElementById('form-cinemagia').value.trim();
     }
 
     if (idxStr === "") {
@@ -663,8 +696,6 @@ function resetFormFields(clearCod = true) {
     updateImagePreview("");
 }
 
-// ==========================================
-// INIȚIALIZARE EVENIMENTE LA PORNIRE
-// ==========================================
+// Initializare evenimente
 resetFiltersObject();
 switchCategory('filme');
