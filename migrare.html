@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <title>Migrare date</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #111827; color: #f3f4f6; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .box { background: #1f2937; padding: 40px; border-radius: 16px; text-align: center; max-width: 480px; }
+        button { padding: 14px 28px; font-size: 16px; font-weight: bold; background: #2563eb; color: white; border: none; border-radius: 10px; cursor: pointer; margin-top: 20px; }
+        button:hover { background: #1d4ed8; }
+        p { line-height: 1.6; }
+        .rezultat { margin-top: 20px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2>Migrare date vechi către Firebase</h2>
+        <p>Apasă butonul de mai jos o singură dată, pe acest laptop, ca să muți datele vechi (filme, muzică, cărți) în noua bază de date online.</p>
+        <button onclick="migreazaDate()">Migrează datele acum</button>
+        <div class="rezultat" id="rezultat"></div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script>
+        function migreazaDate() {
+            const rezultat = document.getElementById('rezultat');
+            const dateVechi = localStorage.getItem('biblioteca_media_db');
+
+            if (!dateVechi) {
+                rezultat.textContent = "Nu am găsit date vechi pe acest laptop/browser.";
+                rezultat.style.color = "#f87171";
+                return;
+            }
+
+            const dateParsate = JSON.parse(dateVechi);
+            if (!dateParsate.filme) dateParsate.filme = [];
+            if (!dateParsate.muzica) dateParsate.muzica = [];
+            if (!dateParsate.carti) dateParsate.carti = [];
+
+            firestoreDB.collection('biblioteca_media').doc('date').set(dateParsate).then(() => {
+                rezultat.textContent = "Succes! Datele au fost mutate în Firebase. Poți reveni acum la aplicație.";
+                rezultat.style.color = "#4ade80";
+            }).catch((eroare) => {
+                rezultat.textContent = "A apărut o problemă: " + eroare.message;
+                rezultat.style.color = "#f87171";
+            });
+        }
+    </script>
+</body>
+</html>
