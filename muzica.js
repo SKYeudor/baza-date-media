@@ -1,14 +1,6 @@
-// ==========================================
-// CONFIGURĂRI ȘI OPȚIUNI SPECIFICE MUZICĂ
-// ==========================================
 const FORMA_EDITARE_OPTIONS = ["Album", "Single", "Maxi-single", "EP (Extended Play)", "Compilație", "Best of", "Greatest Hits", "Soundtrack", "Tribute Album", "Remix Album", "Demo"];
 const TIP_SUPORT_OPTIONS = ["Vinyl", "CD", "DVD", "Blu-ray", "Casetă", "MP3"];
 const TIP_INREGISTRARE_OPTIONS = ["Studio", "Live", "Concert", "Radio Session", "Remaster", "Remix"];
-
-// Inițializare listă muzică în baza de date dacă nu există
-if (!database.muzica) {
-    database.muzica = [];
-}
 
 function getUniqueYearsFromMuzicaDB() {
     const aniSet = new Set();
@@ -20,9 +12,6 @@ function getUniqueYearsFromMuzicaDB() {
     return Array.from(aniSet).sort((a, b) => b - a);
 }
 
-// ==========================================
-// INTERFAȚĂ FILTRE
-// ==========================================
 window.buildMuzicaFiltersUI = function() {
     const container = document.getElementById('filters-container');
     const aniUnici = getUniqueYearsFromMuzicaDB();
@@ -96,9 +85,6 @@ window.resetMuzicaFiltersObject = function() {
     activeFilters = { forma: "Toate", suport: "Toate", inregistrare: "Toate", an: "Toate", text1: "", text2: "" };
 };
 
-// ==========================================
-// CAP DE TABEL ȘI RENDER 
-// ==========================================
 window.buildMuzicaTableHeaderUI = function() {
     const headerRow = document.getElementById('table-header-row');
     let actionsHtml = isAdmin ? `<th class="p-3 text-center w-24">Acțiuni</th>` : '';
@@ -162,9 +148,6 @@ window.renderMuzicaTable = function() {
     document.getElementById('item-count').textContent = `${filteredList.length} elemente identificate`;
 };
 
-// ==========================================
-// FORMULAR INTRODUCERE
-// ==========================================
 window.generateMuzicaFormFieldsHTML = function() {
     const container = document.getElementById('dynamic-form-fields');
     
@@ -231,9 +214,6 @@ window.fillMuzicaFormValues = function(index) {
     if (item.url_img) updateImagePreview(item.url_img);
 };
 
-// ==========================================
-// SALVARE DATE
-// ==========================================
 window.saveMuzicaElement = function(event) {
     const idxStr = document.getElementById('form-edit-index').value;
     
@@ -267,15 +247,12 @@ window.saveMuzicaElement = function(event) {
         database.muzica[idx] = item;
     }
 
-    localStorage.setItem('biblioteca_media_db', JSON.stringify(database));
+    saveDatabase();
     buildFiltersUI();
     closeModal();
     renderTable();
 };
 
-// ==========================================
-// IMPORT EXCEL (9 COLOANE)
-// ==========================================
 window.onMuzicaModalOpen = function(mode, index) {
     const importZone = document.getElementById('excel-import-zone');
     if (!importZone) return;
@@ -349,7 +326,7 @@ window.processMuzicaExcelPaste = function() {
     });
 
     if (elementeAdaugate > 0) {
-        localStorage.setItem('biblioteca_media_db', JSON.stringify(database));
+        saveDatabase();
         buildFiltersUI();
         renderTable();
         closeModal();
