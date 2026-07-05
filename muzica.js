@@ -24,16 +24,16 @@ window.buildMuzicaFiltersUI = function() {
     const aniUnici = getUniqueYearsFromMuzicaDB();
     
     let anOptionsHtml = '<option value="Toate">Toate</option>';
-    aniUnici.forEach(an => { anOptionsHtml += `<option value="${an}">${an}</option>`; });
+    aniUnici.forEach(an => { anOptionsHtml += `<option value="${an}">${an}</option>'; });
 
     let formaOptionsHtml = '<option value="Toate">Toate</option>';
-    FORMA_EDITARE_OPTIONS.forEach(f => { formaOptionsHtml += `<option value="${f}">${f}</option>`; });
+    FORMA_EDITARE_OPTIONS.forEach(f => { formaOptionsHtml += `<option value="${f}">${f}</option>'; });
 
     let suportOptionsHtml = '<option value="Toate">Toate</option>';
     TIP_SUPORT_OPTIONS.forEach(s => { suportOptionsHtml += `<option value="${s}">${s}</option>'; });
 
     let inregistrareOptionsHtml = '<option value="Toate">Toate</option>';
-    TIP_INREGISTRARE_OPTIONS.forEach(i => { inregistrareOptionsHtml += `<option value="${i}">${i}</option>`; });
+    TIP_INREGISTRARE_OPTIONS.forEach(i => { inregistrareOptionsHtml += `<option value="${i}">${i}</option>'; });
 
     container.innerHTML = `
         <div class="flex flex-col shrink-0 min-w-[140px]">
@@ -93,7 +93,7 @@ window.resetMuzicaFiltersObject = function() {
 };
 
 // ==========================================
-// [A] CAP DE TABEL FĂRĂ COLOANA COD
+// [3] CAP DE TABEL FĂRĂ COLOANA COD
 // ==========================================
 window.buildMuzicaTableHeaderUI = function() {
     const headerRow = document.getElementById('table-header-row');
@@ -109,7 +109,7 @@ window.buildMuzicaTableHeaderUI = function() {
 };
 
 // ==========================================
-// [A] REZULTATE CAUTARE (CELE 4 COLOANE SOLICITATE)
+// [3] REZULTATE CAUTARE (CELE 4 COLOANE SOLICITATE)
 // ==========================================
 window.renderMuzicaTable = function() {
     const tbody = document.getElementById('data-tbody');
@@ -162,7 +162,7 @@ window.renderMuzicaTable = function() {
 };
 
 // ==========================================
-// [A] & [B] REPOZIȚIONARE ȘI DENUMIRI COMPLETE CURATE
+// [4.ii] FORMULAR INTRODUCERE - DENUMIREA TRACK LIST
 // ==========================================
 window.generateMuzicaFormFieldsHTML = function() {
     const container = document.getElementById('dynamic-form-fields');
@@ -195,18 +195,14 @@ window.generateMuzicaFormFieldsHTML = function() {
         <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">URL Copertă</label><input type="url" id="form-url-img" oninput="updateImagePreview(this.value)" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
         
         <div class="pt-2">
-            <div class="text-xs font-bold text-blue-400 uppercase tracking-wider mb-1 select-none">TRACK LIST</div>
-            <textarea id="form-tracklist" rows="4" placeholder="1. Nume Piesă&#10;2. Altă Piesă" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-xs text-gray-300 font-mono focus:outline-none focus:border-blue-500"></textarea>
-        </div>
-
-        <div id="muzica-import-container" class="pt-4 border-t border-gray-700/50 mt-4 hidden">
-            <div class="text-xs font-bold text-blue-400 uppercase tracking-wider mb-1 select-none">IMPORT DATE</div>
-            <textarea id="excel-paste-area" rows="4" placeholder="Artist/Grup || Titlul || Forma de editare || Tip suport || Tip inregistrare || An lansare || Gen muzical || Extras din || Observatii" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-xl text-xs text-gray-300 font-mono focus:outline-none focus:border-blue-500 placeholder-gray-600"></textarea>
-            <div class="mt-2 text-right">
-                <button type="button" onclick="processMuzicaExcelPaste()" class="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg transition shadow-md cursor-pointer">
-                    Execută vărsarea datelor muzicale
-                </button>
-            </div>
+            <details class="bg-gray-900 border border-gray-700 rounded-xl p-3 transition-all" open>
+                <summary class="text-xs font-bold text-blue-400 uppercase tracking-wider cursor-pointer select-none flex items-center gap-1.5">
+                    <i class="fa-solid fa-list-ol"></i> TRACK LIST
+                </summary>
+                <div class="mt-2">
+                    <textarea id="form-tracklist" rows="4" placeholder="1. Nume Piesă&#10;2. Altă Piesă" class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-xs text-gray-300 font-mono focus:outline-none focus:border-blue-500"></textarea>
+                </div>
+            </details>
         </div>
     `;
 };
@@ -272,18 +268,28 @@ window.saveMuzicaElement = function(event) {
     renderTable();
 };
 
-// Controlul vizibilității casetei de import doar în regimul de Adăugare ("add")
+// ==========================================
+// [3] & [4.iii] REZIDAREA CASETI IMPORT DATE + PLACEHOLDER EXCEL STRUCTURĂ PERMANENTĂ
+// ==========================================
 window.onMuzicaModalOpen = function(mode, index) {
-    const generalImportZone = document.getElementById('excel-import-zone');
-    if (generalImportZone) generalImportZone.classList.add('hidden');
-
-    const muzicaImportContainer = document.getElementById('muzica-import-container');
-    if (!muzicaImportContainer) return;
+    const importZone = document.getElementById('excel-import-zone');
+    if (!importZone) return;
 
     if (mode === 'add') {
-        muzicaImportContainer.classList.remove('hidden');
+        importZone.innerHTML = `
+            <h3 class="text-xs font-bold text-blue-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                <i class="fa-solid fa-file-import"></i> IMPORT DATE
+            </h3>
+            <textarea id="excel-paste-area" rows="4" placeholder="Structură coloane Excel obligatorie (separare prin Tab):&#10;Artist/Grup	Titlul	Forma de editare	Tip suport	Tip inregistrare	An lansare	Gen muzical	Extras din	Observatii" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-xl text-xs text-gray-300 font-mono focus:outline-none focus:border-blue-500 placeholder-gray-600"></textarea>
+            <div class="mt-2 text-right">
+                <button type="button" onclick="processMuzicaExcelPaste()" class="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg transition shadow-md">
+                    <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Execută vărsarea datelor muzicale
+                </button>
+            </div>
+        `;
+        importZone.classList.remove('hidden');
     } else {
-        muzicaImportContainer.classList.add('hidden');
+        importZone.classList.add('hidden');
     }
 };
 
