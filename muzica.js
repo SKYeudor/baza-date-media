@@ -21,7 +21,7 @@ function getUniqueYearsFromMuzicaDB() {
 }
 
 // ==========================================
-// INTERFAȚĂ FILTRE (CERINȚA I, II, III)
+// INTERFAȚĂ FILTRE
 // ==========================================
 window.buildMuzicaFiltersUI = function() {
     const container = document.getElementById('filters-container');
@@ -74,7 +74,6 @@ window.buildMuzicaFiltersUI = function() {
         </div>
     `;
 
-    // Sincronizare valori din starea salvată
     if (document.getElementById('filter-forma')) document.getElementById('filter-forma').value = activeFilters.forma || "Toate";
     if (document.getElementById('filter-suport')) document.getElementById('filter-suport').value = activeFilters.suport || "Toate";
     if (document.getElementById('filter-inregistrare')) document.getElementById('filter-inregistrare').value = activeFilters.inregistrare || "Toate";
@@ -98,7 +97,7 @@ window.resetMuzicaFiltersObject = function() {
 };
 
 // ==========================================
-// CAP DE TABEL ȘI RENDER (FĂRĂ COD, CONFORM CERINȚEI)
+// CAP DE TABEL ȘI RENDER 
 // ==========================================
 window.buildMuzicaTableHeaderUI = function() {
     const headerRow = document.getElementById('table-header-row');
@@ -131,7 +130,6 @@ window.renderMuzicaTable = function() {
         return true;
     });
 
-    // Executare sortare alfabetică
     filteredList.sort((a, b) => {
         let valA = a[currentSortKey] ? a[currentSortKey].toString().trim() : "";
         let valB = b[currentSortKey] ? b[currentSortKey].toString().trim() : "";
@@ -165,7 +163,7 @@ window.renderMuzicaTable = function() {
 };
 
 // ==========================================
-// FORMULAR INTRODUCERE (INSERARE CARACTERISTICI + TRACK LIST)
+// FORMULAR INTRODUCERE
 // ==========================================
 window.generateMuzicaFormFieldsHTML = function() {
     const container = document.getElementById('dynamic-form-fields');
@@ -197,7 +195,6 @@ window.generateMuzicaFormFieldsHTML = function() {
         <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Observații</label><input type="text" id="form-observatii" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
         <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">URL Copertă</label><input type="url" id="form-url-img" oninput="updateImagePreview(this.value)" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
         
-        <!-- Caseta expandabilă pentru Track List (Cerința suplimentară) -->
         <div class="pt-2">
             <details class="bg-gray-900 border border-gray-700 rounded-xl p-3 transition-all">
                 <summary class="text-xs font-bold text-blue-400 uppercase tracking-wider cursor-pointer select-none flex items-center gap-1.5">
@@ -225,7 +222,6 @@ window.fillMuzicaFormValues = function(index) {
     document.getElementById('form-observatii').value = item.observatii || '';
     document.getElementById('form-url-img').value = item.url_img || '';
     
-    // Asigură popularea track listului în caseta expandabilă
     setTimeout(() => {
         if(document.getElementById('form-tracklist')) {
             document.getElementById('form-tracklist').value = item.tracklist || '';
@@ -236,7 +232,7 @@ window.fillMuzicaFormValues = function(index) {
 };
 
 // ==========================================
-// SALVARE DATE (SISTEM DE CODIFICARE FUNDAL INDEPENDENT)
+// SALVARE DATE
 // ==========================================
 window.saveMuzicaElement = function(event) {
     const idxStr = document.getElementById('form-edit-index').value;
@@ -256,7 +252,6 @@ window.saveMuzicaElement = function(event) {
     let item = { autor, titlu, forma_editare, tip_suport, tip_inregistrare, an, gen, extras_din, observatii, url_img, tracklist };
 
     if (idxStr === "") {
-        // Alocare cod unic automat în fundal pentru managementul bazei de date
         let maxNum = 0;
         database.muzica.forEach(m => {
             if (m.cod && m.cod.startsWith("M26-")) {
@@ -268,7 +263,7 @@ window.saveMuzicaElement = function(event) {
         database.muzica.push(item);
     } else {
         const idx = parseInt(idxStr);
-        item.cod = database.muzica[idx].cod; // Conservă codul de fundal existent
+        item.cod = database.muzica[idx].cod; 
         database.muzica[idx] = item;
     }
 
@@ -279,7 +274,7 @@ window.saveMuzicaElement = function(event) {
 };
 
 // ==========================================
-// ADAPTARE DINAMICĂ MODAL & IMPORT EXCEL EXCLUSIV (9 COLOANE)
+// IMPORT EXCEL (9 COLOANE)
 // ==========================================
 window.onMuzicaModalOpen = function(mode, index) {
     const importZone = document.getElementById('excel-import-zone');
@@ -331,7 +326,7 @@ window.processMuzicaExcelPaste = function() {
         
         let autor = col[0] ? col[0].trim() : "";
         let titlu = col[1] ? col[1].trim() : "";
-        if (!autor || !titlu) return; // Linie invalidă
+        if (!autor || !titlu) return; 
 
         maxNum++;
         let newElement = {
