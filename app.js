@@ -141,7 +141,6 @@ function buildTableHeaderUI() {
         `;
     } else {
         headerRow.innerHTML = `
-            <th class="p-3 w-20">Cod</th>
             <th class="p-3 sortable" onclick="handleHeaderSort('autor')">Autor/Artist ${getSortIndicator('autor')}</th>
             <th class="p-3 sortable" onclick="handleHeaderSort('titlu')">Titlu ${getSortIndicator('titlu')}</th>
             <th class="p-3 w-24">Tip</th>
@@ -273,7 +272,6 @@ function renderTable() {
             `;
         } else {
             tr.innerHTML = `
-                <td class="p-3 font-mono text-xs text-blue-400 font-bold">${item.cod || ''}</td>
                 <td class="p-3 font-semibold text-white">${item.autor || '-'}</td>
                 <td class="p-3 text-gray-300 font-medium">${item.titlu}</td>
                 <td class="p-3 text-xs">${item.tip || '-'}</td>
@@ -369,10 +367,14 @@ function applyImageGeometry() {
         wrapper.style.minWidth = '160px'; wrapper.style.maxWidth = '160px'; wrapper.style.width = '160px'; wrapper.style.height = '225px';
         document.getElementById('form-image-label').textContent = "Afiș (160x225)";
         document.getElementById('modal-category-badge').textContent = "Filme & Seriale";
+    } else if (currentCategory === 'muzica') {
+        wrapper.style.minWidth = '175px'; wrapper.style.maxWidth = '175px'; wrapper.style.width = '175px'; wrapper.style.height = '175px';
+        document.getElementById('form-image-label').textContent = "Copertă (175x175)";
+        document.getElementById('modal-category-badge').textContent = "MUZICĂ";
     } else {
         wrapper.style.minWidth = '175px'; wrapper.style.maxWidth = '175px'; wrapper.style.width = '175px'; wrapper.style.height = '175px';
         document.getElementById('form-image-label').textContent = "Copertă (175x175)";
-        document.getElementById('modal-category-badge').textContent = "Media / Muzică";
+        document.getElementById('modal-category-badge').textContent = "CĂRȚI";
     }
 }
 
