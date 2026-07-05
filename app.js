@@ -26,6 +26,7 @@ if (localStorage.getItem('biblioteca_media_db')) {
         durata: "120 min", 
         actori: "Actor Exemplu", 
         imdb: "https://www.imdb.com", 
+        cinemagia: "https://www.cinemagia.ro",
         url_img: "" 
     });
     localStorage.setItem('biblioteca_media_db', JSON.stringify(database));
@@ -173,6 +174,7 @@ function buildTableHeaderUI() {
             <th class="p-3 sortable" onclick="handleHeaderSort('gen')">GEN ${getSortIndicator('gen')}</th>
             <th class="p-3 sortable w-24" onclick="handleHeaderSort('durata')">DURATA ${getSortIndicator('durata')}</th>
             <th class="p-3 text-center w-20">IMDB</th>
+            <th class="p-3 text-center w-24">CineMagia</th>
             ${actionsHtml}
         `;
     } else {
@@ -285,6 +287,10 @@ function renderTable() {
             const imdbBtnClass = hasImdb ? 'imdb-btn-active' : 'imdb-btn-inactive';
             const imdbAttr = hasImdb ? `href="${item.imdb}" target="_blank"` : `onclick="alert('Fără link IMDB valid.')"`;
 
+            const hasCineMagia = item.cinemagia && item.cinemagia.trim() !== "" && item.cinemagia !== "-" && item.cinemagia.toLowerCase().startsWith('http');
+            const cmBtnClass = hasCineMagia ? 'imdb-btn-active' : 'imdb-btn-inactive';
+            const cmAttr = hasCineMagia ? `href="${item.cinemagia}" target="_blank"` : `onclick="alert('Fără link CineMagia valid.')"`;
+
             tr.innerHTML = `
                 <td class="p-3 font-semibold text-white">${item.titlu}</td>
                 <td class="p-3 text-xs text-gray-400 italic">${item.actori || '-'}</td>
@@ -294,6 +300,11 @@ function renderTable() {
                 <td class="p-3 text-center">
                     <a ${imdbAttr} class="${imdbBtnClass} px-2 py-0.5 rounded text-[10px] font-extrabold tracking-tight inline-flex items-center gap-1 transition shadow-sm cursor-pointer">
                         <i class="fa-brands fa-imdb text-sm"></i> IMDB
+                    </a>
+                </td>
+                <td class="p-3 text-center">
+                    <a ${cmAttr} class="${cmBtnClass} px-2 py-0.5 rounded text-[10px] font-extrabold tracking-tight inline-flex items-center gap-1 transition shadow-sm cursor-pointer">
+                        <i class="fa-solid fa-film text-sm"></i> CineMagia
                     </a>
                 </td>
                 ${actionTd}
@@ -357,6 +368,7 @@ function processExcelPaste() {
         let gen = coloane[2] ? coloane[2].trim() : "-";
         let durata = coloane[3] ? coloane[3].trim() : "-";
         let imdb = coloane[4] ? coloane[4].trim() : "-";
+        let cinemagia = coloane[5] ? coloane[5].trim() : "-";
 
         maxNum++;
         let noulCod = "F25-" + String(maxNum).padStart(3, '0');
@@ -372,6 +384,7 @@ function processExcelPaste() {
             durata: durata,
             actori: actori,
             imdb: imdb,
+            cinemagia: cinemagia,
             url_img: ""
         };
 
@@ -433,9 +446,10 @@ function generateFormFieldsHTML() {
                 <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Durată / Episoade</label><input type="text" id="form-durata" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
             </div>
             <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">În distribuție (Actori) *</label><input type="text" id="form-actori" required class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
+            <div class="flex flex-col mt-2"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">URL Afiș</label><input type="url" id="form-url-img" oninput="updateImagePreview(this.value)" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">URL Afiș</label><input type="url" id="form-url-img" oninput="updateImagePreview(this.value)" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
                 <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Link URL IMDB</label><input type="url" id="form-imdb" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
+                <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Link URL CineMagia</label><input type="url" id="form-cinemagia" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
             </div>
         `;
     } else {
@@ -454,13 +468,10 @@ function generateFormFieldsHTML() {
 
 function toggleAdminMode() {
     if (!isAdmin) {
-        // Deschide modalul personalizat în locul prompt-ului nativ
         document.getElementById('password-modal').classList.remove('hidden');
         document.getElementById('password-input').value = '';
-        // Setează focusul automat pe câmpul de text pentru tastare imediată
         setTimeout(() => document.getElementById('password-input').focus(), 100);
     } else {
-        // Ieșirea din modul admin
         isAdmin = false;
         setAdminUI(false);
         buildTableHeaderUI();
@@ -604,6 +615,7 @@ function fillFormValues(index) {
         document.getElementById('form-durata').value = item.durata || '';
         document.getElementById('form-actori').value = item.actori || '';
         document.getElementById('form-imdb').value = item.imdb || '';
+        document.getElementById('form-cinemagia').value = item.cinemagia || '';
     } else {
         if(document.getElementById('form-autor')) document.getElementById('form-autor').value = item.autor || '';
     }
@@ -634,6 +646,7 @@ function saveElement(event) {
         item.durata = document.getElementById('form-durata').value.trim();
         item.actori = document.getElementById('form-actori').value.trim();
         item.imdb = document.getElementById('form-imdb').value.trim();
+        item.cinemagia = document.getElementById('form-cinemagia').value.trim();
     } else {
         item.autor = document.getElementById('form-autor').value.trim();
     }
