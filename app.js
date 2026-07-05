@@ -454,21 +454,38 @@ function generateFormFieldsHTML() {
 
 function toggleAdminMode() {
     if (!isAdmin) {
-        const pass = prompt("Introduceți parola de administrare pentru securizarea datelor:");
-        if (pass === null) return;
-        
-        if (pass === ADMIN_PASSWORD) {
-            isAdmin = true;
-            setAdminUI(true);
-        } else {
-            alert("Parolă incorectă!");
-        }
+        // Deschide modalul personalizat în locul prompt-ului nativ
+        document.getElementById('password-modal').classList.remove('hidden');
+        document.getElementById('password-input').value = '';
+        // Setează focusul automat pe câmpul de text pentru tastare imediată
+        setTimeout(() => document.getElementById('password-input').focus(), 100);
     } else {
+        // Ieșirea din modul admin
         isAdmin = false;
         setAdminUI(false);
+        buildTableHeaderUI();
+        renderTable();
     }
-    buildTableHeaderUI();
-    renderTable();
+}
+
+function closePasswordModal() {
+    document.getElementById('password-modal').classList.add('hidden');
+    document.getElementById('password-input').value = '';
+}
+
+function verifyAdminPassword() {
+    const pass = document.getElementById('password-input').value;
+    if (pass === ADMIN_PASSWORD) {
+        isAdmin = true;
+        setAdminUI(true);
+        closePasswordModal();
+        buildTableHeaderUI();
+        renderTable();
+    } else {
+        alert("Parolă incorectă!");
+        document.getElementById('password-input').value = '';
+        document.getElementById('password-input').focus();
+    }
 }
 
 function setAdminUI(enabled) {
