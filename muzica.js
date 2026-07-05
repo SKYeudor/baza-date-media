@@ -181,10 +181,9 @@ window.generateMuzicaFormFieldsHTML = function() {
         <div class="pt-2">
             <details class="bg-gray-900 border border-gray-700 rounded-xl p-3 transition-all">
                 <summary class="text-xs font-bold text-blue-400 uppercase tracking-wider cursor-pointer select-none flex items-center gap-1.5">
-                    <i class="fa-solid fa-list-ol"></i> Track list album / suport (Apasă pentru extindere)
+                    <i class="fa-solid fa-list-ol"></i> TRACK LIST
                 </summary>
                 <div class="mt-2">
-                    <p class="text-[10px] text-gray-500 mb-1.5">Introduceți piesele în ordinea dorită, una sub cealaltă.</p>
                     <textarea id="form-tracklist" rows="4" placeholder="1. Nume Piesă&#10;2. Altă Piesă" class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-xs text-gray-300 font-mono focus:outline-none focus:border-blue-500"></textarea>
                 </div>
             </details>
@@ -259,17 +258,30 @@ window.onMuzicaModalOpen = function(mode, index) {
 
     if (mode === 'add') {
         importZone.innerHTML = `
-            <h3 class="text-xs font-bold text-blue-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                <i class="fa-solid fa-file-import"></i> Caseta de Vărsare Date Excel (Muzică)
+            <h3 class="text-xs font-bold text-blue-400 uppercase tracking-wider mb-3">
+                IMPORT DATE
             </h3>
-            <p class="text-[11px] text-gray-400 mb-2">
-                Structură coloane Excel obligatorie (separare prin Tab):<br>
-                <span class="font-mono text-blue-300 text-[10px]">Artist/Grup — Titlul — Forma de editare — Tip suport — Tip înregistrare — An lansare — Gen muzical — Extras din — Observații</span>
-            </p>
+            <div class="overflow-x-auto rounded-lg border border-gray-700 mb-3">
+                <table class="w-full text-[10px] text-blue-300 font-mono border-collapse whitespace-nowrap">
+                    <thead>
+                        <tr class="bg-gray-900">
+                            <th class="p-2 border-r border-gray-700">Artist/Grup</th>
+                            <th class="p-2 border-r border-gray-700">Titlul</th>
+                            <th class="p-2 border-r border-gray-700">Forma de editare</th>
+                            <th class="p-2 border-r border-gray-700">Tip suport</th>
+                            <th class="p-2 border-r border-gray-700">Tip înregistrare</th>
+                            <th class="p-2 border-r border-gray-700">An lansare</th>
+                            <th class="p-2 border-r border-gray-700">Gen muzical</th>
+                            <th class="p-2 border-r border-gray-700">Extras din</th>
+                            <th class="p-2">Observații</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
             <textarea id="excel-paste-area" rows="3" placeholder="Lipește rândurile copiate direct din tabelul Excel aici..." class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-xl text-xs text-gray-300 font-mono focus:outline-none focus:border-blue-500 placeholder-gray-600"></textarea>
             <div class="mt-2 text-right">
                 <button type="button" onclick="processMuzicaExcelPaste()" class="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg transition shadow-md">
-                    <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Execută vărsarea datelor muzicale
+                    <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Execută importul
                 </button>
             </div>
         `;
