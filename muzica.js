@@ -5,6 +5,7 @@ const FORMA_EDITARE_OPTIONS = ["Album", "Single", "Maxi-single", "EP (Extended P
 const TIP_SUPORT_OPTIONS = ["Vinyl", "CD", "DVD", "Blu-ray", "Casetă", "MP3"];
 const TIP_INREGISTRARE_OPTIONS = ["Studio", "Live", "Concert", "Radio Session", "Remaster", "Remix"];
 
+// Inițializare listă muzică în baza de date dacă nu există
 if (!database.muzica) {
     database.muzica = [];
 }
@@ -19,21 +20,24 @@ function getUniqueYearsFromMuzicaDB() {
     return Array.from(aniSet).sort((a, b) => b - a);
 }
 
+// ==========================================
+// INTERFAȚĂ FILTRE (CERINȚA I, II, III)
+// ==========================================
 window.buildMuzicaFiltersUI = function() {
     const container = document.getElementById('filters-container');
     const aniUnici = getUniqueYearsFromMuzicaDB();
     
     let anOptionsHtml = '<option value="Toate">Toate</option>';
-    aniUnici.forEach(an => { anOptionsHtml += `<option value="${an}">${an}</option>'; });
+    aniUnici.forEach(an => { anOptionsHtml += `<option value="${an}">${an}</option>`; });
 
     let formaOptionsHtml = '<option value="Toate">Toate</option>';
-    FORMA_EDITARE_OPTIONS.forEach(f => { formaOptionsHtml += `<option value="${f}">${f}</option>'; });
+    FORMA_EDITARE_OPTIONS.forEach(f => { formaOptionsHtml += `<option value="${f}">${f}</option>`; });
 
     let suportOptionsHtml = '<option value="Toate">Toate</option>';
-    TIP_SUPORT_OPTIONS.forEach(s => { suportOptionsHtml += `<option value="${s}">${s}</option>'; });
+    TIP_SUPORT_OPTIONS.forEach(s => { suportOptionsHtml += `<option value="${s}">${s}</option>`; });
 
     let inregistrareOptionsHtml = '<option value="Toate">Toate</option>';
-    TIP_INREGISTRARE_OPTIONS.forEach(i => { inregistrareOptionsHtml += `<option value="${i}">${i}</option>'; });
+    TIP_INREGISTRARE_OPTIONS.forEach(i => { inregistrareOptionsHtml += `<option value="${i}">${i}</option>`; });
 
     container.innerHTML = `
         <div class="flex flex-col shrink-0 min-w-[140px]">
@@ -70,6 +74,7 @@ window.buildMuzicaFiltersUI = function() {
         </div>
     `;
 
+    // Sincronizare valori din starea salvată
     if (document.getElementById('filter-forma')) document.getElementById('filter-forma').value = activeFilters.forma || "Toate";
     if (document.getElementById('filter-suport')) document.getElementById('filter-suport').value = activeFilters.suport || "Toate";
     if (document.getElementById('filter-inregistrare')) document.getElementById('filter-inregistrare').value = activeFilters.inregistrare || "Toate";
@@ -93,7 +98,7 @@ window.resetMuzicaFiltersObject = function() {
 };
 
 // ==========================================
-// [3] CAP DE TABEL FĂRĂ COLOANA COD
+// CAP DE TABEL ȘI RENDER (FĂRĂ COD, CONFORM CERINȚEI)
 // ==========================================
 window.buildMuzicaTableHeaderUI = function() {
     const headerRow = document.getElementById('table-header-row');
@@ -108,9 +113,6 @@ window.buildMuzicaTableHeaderUI = function() {
     `;
 };
 
-// ==========================================
-// [3] REZULTATE CAUTARE (CELE 4 COLOANE SOLICITATE)
-// ==========================================
 window.renderMuzicaTable = function() {
     const tbody = document.getElementById('data-tbody');
     tbody.innerHTML = '';
@@ -129,6 +131,7 @@ window.renderMuzicaTable = function() {
         return true;
     });
 
+    // Executare sortare alfabetică
     filteredList.sort((a, b) => {
         let valA = a[currentSortKey] ? a[currentSortKey].toString().trim() : "";
         let valB = b[currentSortKey] ? b[currentSortKey].toString().trim() : "";
@@ -162,7 +165,7 @@ window.renderMuzicaTable = function() {
 };
 
 // ==========================================
-// [4.ii] FORMULAR INTRODUCERE - DENUMIREA TRACK LIST
+// FORMULAR INTRODUCERE (INSERARE CARACTERISTICI + TRACK LIST)
 // ==========================================
 window.generateMuzicaFormFieldsHTML = function() {
     const container = document.getElementById('dynamic-form-fields');
@@ -194,12 +197,14 @@ window.generateMuzicaFormFieldsHTML = function() {
         <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Observații</label><input type="text" id="form-observatii" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
         <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">URL Copertă</label><input type="url" id="form-url-img" oninput="updateImagePreview(this.value)" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
         
+        <!-- Caseta expandabilă pentru Track List (Cerința suplimentară) -->
         <div class="pt-2">
-            <details class="bg-gray-900 border border-gray-700 rounded-xl p-3 transition-all" open>
+            <details class="bg-gray-900 border border-gray-700 rounded-xl p-3 transition-all">
                 <summary class="text-xs font-bold text-blue-400 uppercase tracking-wider cursor-pointer select-none flex items-center gap-1.5">
-                    <i class="fa-solid fa-list-ol"></i> TRACK LIST
+                    <i class="fa-solid fa-list-ol"></i> Track list album / suport (Apasă pentru extindere)
                 </summary>
                 <div class="mt-2">
+                    <p class="text-[10px] text-gray-500 mb-1.5">Introduceți piesele în ordinea dorită, una sub cealaltă.</p>
                     <textarea id="form-tracklist" rows="4" placeholder="1. Nume Piesă&#10;2. Altă Piesă" class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-xs text-gray-300 font-mono focus:outline-none focus:border-blue-500"></textarea>
                 </div>
             </details>
@@ -220,6 +225,7 @@ window.fillMuzicaFormValues = function(index) {
     document.getElementById('form-observatii').value = item.observatii || '';
     document.getElementById('form-url-img').value = item.url_img || '';
     
+    // Asigură popularea track listului în caseta expandabilă
     setTimeout(() => {
         if(document.getElementById('form-tracklist')) {
             document.getElementById('form-tracklist').value = item.tracklist || '';
@@ -229,6 +235,9 @@ window.fillMuzicaFormValues = function(index) {
     if (item.url_img) updateImagePreview(item.url_img);
 };
 
+// ==========================================
+// SALVARE DATE (SISTEM DE CODIFICARE FUNDAL INDEPENDENT)
+// ==========================================
 window.saveMuzicaElement = function(event) {
     const idxStr = document.getElementById('form-edit-index').value;
     
@@ -247,6 +256,7 @@ window.saveMuzicaElement = function(event) {
     let item = { autor, titlu, forma_editare, tip_suport, tip_inregistrare, an, gen, extras_din, observatii, url_img, tracklist };
 
     if (idxStr === "") {
+        // Alocare cod unic automat în fundal pentru managementul bazei de date
         let maxNum = 0;
         database.muzica.forEach(m => {
             if (m.cod && m.cod.startsWith("M26-")) {
@@ -258,7 +268,7 @@ window.saveMuzicaElement = function(event) {
         database.muzica.push(item);
     } else {
         const idx = parseInt(idxStr);
-        item.cod = database.muzica[idx].cod; 
+        item.cod = database.muzica[idx].cod; // Conservă codul de fundal existent
         database.muzica[idx] = item;
     }
 
@@ -269,7 +279,7 @@ window.saveMuzicaElement = function(event) {
 };
 
 // ==========================================
-// [3] & [4.iii] REZIDAREA CASETI IMPORT DATE + PLACEHOLDER EXCEL STRUCTURĂ PERMANENTĂ
+// ADAPTARE DINAMICĂ MODAL & IMPORT EXCEL EXCLUSIV (9 COLOANE)
 // ==========================================
 window.onMuzicaModalOpen = function(mode, index) {
     const importZone = document.getElementById('excel-import-zone');
@@ -278,9 +288,13 @@ window.onMuzicaModalOpen = function(mode, index) {
     if (mode === 'add') {
         importZone.innerHTML = `
             <h3 class="text-xs font-bold text-blue-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                <i class="fa-solid fa-file-import"></i> IMPORT DATE
+                <i class="fa-solid fa-file-import"></i> Caseta de Vărsare Date Excel (Muzică)
             </h3>
-            <textarea id="excel-paste-area" rows="4" placeholder="Structură coloane Excel obligatorie (separare prin Tab):&#10;Artist/Grup	Titlul	Forma de editare	Tip suport	Tip inregistrare	An lansare	Gen muzical	Extras din	Observatii" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-xl text-xs text-gray-300 font-mono focus:outline-none focus:border-blue-500 placeholder-gray-600"></textarea>
+            <p class="text-[11px] text-gray-400 mb-2">
+                Structură coloane Excel obligatorie (separare prin Tab):<br>
+                <span class="font-mono text-blue-300 text-[10px]">Artist/Grup — Titlul — Forma de editare — Tip suport — Tip înregistrare — An lansare — Gen muzical — Extras din — Observații</span>
+            </p>
+            <textarea id="excel-paste-area" rows="3" placeholder="Lipește rândurile copiate direct din tabelul Excel aici..." class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-xl text-xs text-gray-300 font-mono focus:outline-none focus:border-blue-500 placeholder-gray-600"></textarea>
             <div class="mt-2 text-right">
                 <button type="button" onclick="processMuzicaExcelPaste()" class="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg transition shadow-md">
                     <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Execută vărsarea datelor muzicale
@@ -317,7 +331,7 @@ window.processMuzicaExcelPaste = function() {
         
         let autor = col[0] ? col[0].trim() : "";
         let titlu = col[1] ? col[1].trim() : "";
-        if (!autor || !titlu) return; 
+        if (!autor || !titlu) return; // Linie invalidă
 
         maxNum++;
         let newElement = {
