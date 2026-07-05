@@ -1,40 +1,5 @@
-// ==========================================
-// CONFIGURĂRI GLOBALE ȘI STĂRI APLICAȚIE
-// ==========================================
 const ADMIN_PASSWORD = "bra$ov4";
-let isAdmin = false; 
-let currentCategory = 'filme';
-let activeFilters = {};
 
-let currentSortKey = 'titlu';
-let currentSortOrder = 'asc'; 
-
-let database = { filme: [], muzica: [], carti: [] };
-
-// Încărcare inițială a bazei de date
-if (localStorage.getItem('biblioteca_media_db')) {
-    database = JSON.parse(localStorage.getItem('biblioteca_media_db'));
-} else {
-    database.filme.push({ 
-        cod: "F25-001", 
-        titlu: "Exemplu Catalog", 
-        tip: "Film", 
-        status: "Vizionat", 
-        gen: "Drama", 
-        an: "2025", 
-        regizor: "Regizor Test", 
-        durata: "120 min", 
-        actori: "Actor Exemplu", 
-        imdb: "https://www.imdb.com", 
-        cinemagia: "https://www.cinemagia.ro",
-        url_img: "" 
-    });
-    localStorage.setItem('biblioteca_media_db', JSON.stringify(database));
-}
-
-// ==========================================
-// FUNCȚII GENERALE ȘI FILTRARE
-// ==========================================
 function resetFiltersObject() {
     if (currentCategory === 'muzica' && window.resetMuzicaFiltersObject) {
         window.resetMuzicaFiltersObject();
@@ -149,9 +114,6 @@ function buildFiltersUI() {
     if (document.getElementById('filter-text2')) document.getElementById('filter-text2').value = activeFilters.text2 || "";
 }
 
-// ==========================================
-// LOGICA DE SORTARE ȘI DESENARE TABEL
-// ==========================================
 function getSortIndicator(key) {
     if (currentSortKey !== key) return '<span class="text-gray-600 ml-1 text-[10px]">▲▼</span>';
     return currentSortOrder === 'asc' ? '<span class="text-blue-400 ml-1">▲</span>' : '<span class="text-blue-400 ml-1">▼</span>';
@@ -326,9 +288,6 @@ function renderTable() {
     document.getElementById('item-count').textContent = `${filteredList.length} elemente identificate`;
 }
 
-// ==========================================
-// VĂRSARE DATE EXCEL
-// ==========================================
 function processExcelPaste() {
     if (currentCategory === 'muzica' && window.processMuzicaExcelPaste) {
         window.processMuzicaExcelPaste();
@@ -393,7 +352,7 @@ function processExcelPaste() {
     });
 
     if (elementeAdaugate > 0) {
-        localStorage.setItem('biblioteca_media_db', JSON.stringify(database));
+        saveDatabase();
         buildFiltersUI(); 
         renderTable();
         document.getElementById('excel-paste-area').value = ""; 
@@ -404,9 +363,6 @@ function processExcelPaste() {
     }
 }
 
-// ==========================================
-// MANAGEMENT FINAR FORMULAR & MODALE (CRUD)
-// ==========================================
 function applyImageGeometry() {
     const wrapper = document.getElementById('image-wrapper');
     if (currentCategory === 'filme') {
@@ -660,7 +616,7 @@ function saveElement(event) {
         database[currentCategory][parseInt(idxStr)] = item;
     }
 
-    localStorage.setItem('biblioteca_media_db', JSON.stringify(database));
+    saveDatabase();
     buildFiltersUI();
     closeModal();
     renderTable();
@@ -672,7 +628,7 @@ function deleteCurrentElement() {
     if (idxStr !== "") {
         if (confirm("Sigur doriți să ștergeți definitiv acest element?")) {
             database[currentCategory].splice(parseInt(idxStr), 1);
-            localStorage.setItem('biblioteca_media_db', JSON.stringify(database));
+            saveDatabase();
             buildFiltersUI();
             closeModal();
             renderTable();
@@ -692,9 +648,3 @@ function resetFormFields(clearCod = true) {
     }
     updateImagePreview("");
 }
-
-// ==========================================
-// INIȚIALIZARE EVENIMENTE LA PORNIRE
-// ==========================================
-resetFiltersObject();
-switchCategory('filme');
