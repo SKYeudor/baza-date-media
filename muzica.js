@@ -252,47 +252,6 @@ window.saveMuzicaElement = function(event) {
     renderTable();
 };
 
-window.onMuzicaModalOpen = function(mode, index) {
-    const importZone = document.getElementById('excel-import-zone');
-    if (!importZone) return;
-
-    if (mode === 'add') {
-        importZone.innerHTML = `
-            <details class="bg-gray-900 border border-gray-700 rounded-xl p-3 transition-all">
-                <summary class="text-xs font-bold text-blue-400 uppercase tracking-wider cursor-pointer select-none flex items-center gap-1.5">
-                    <i class="fa-solid fa-file-import"></i> IMPORT DATE
-                </summary>
-                <div class="mt-2 space-y-2">
-                    <div class="overflow-x-auto rounded-lg border border-gray-700">
-                        <table class="w-full text-[10px] text-blue-300 font-mono border-collapse whitespace-nowrap">
-                            <thead>
-                                <tr class="bg-gray-900">
-                                    <th class="p-2 border-r border-gray-700">Artist/Grup</th>
-                                    <th class="p-2 border-r border-gray-700">Titlul</th>
-                                    <th class="p-2 border-r border-gray-700">Forma de editare</th>
-                                    <th class="p-2 border-r border-gray-700">Tip suport</th>
-                                    <th class="p-2 border-r border-gray-700">Tip înregistrare</th>
-                                    <th class="p-2 border-r border-gray-700">An lansare</th>
-                                    <th class="p-2 border-r border-gray-700">Gen muzical</th>
-                                    <th class="p-2 border-r border-gray-700">Extras din</th>
-                                    <th class="p-2">Observații</th>
-                                </tr>
-                            </thead>
-                        </table>
-                    </div>
-                    <textarea id="excel-paste-area" rows="3" class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-xs text-gray-300 font-mono focus:outline-none focus:border-blue-500"></textarea>
-                    <div class="text-right">
-                        <button type="button" onclick="processMuzicaExcelPaste()" class="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg transition shadow-md">Importă datele</button>
-                    </div>
-                </div>
-            </details>
-        `;
-        importZone.classList.remove('hidden');
-    } else {
-        importZone.classList.add('hidden');
-    }
-};
-
 window.processMuzicaExcelPaste = function() {
     const txt = document.getElementById('excel-paste-area').value.trim();
     if (!txt) {
