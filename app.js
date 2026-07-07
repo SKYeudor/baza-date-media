@@ -298,10 +298,6 @@ function processExcelPaste() {
         return;
     }
 
-    const tipGlobal = document.getElementById('form-tip').value;
-    const statusGlobal = document.getElementById('form-status').value;
-    const anGlobal = document.getElementById('form-an').value.trim() || "-";
-
     const linii = txt.split('\n');
     let elementeAdaugate = 0;
 
@@ -318,30 +314,23 @@ function processExcelPaste() {
         
         const coloane = linie.split('\t');
         
-        let titlu = coloane[0] ? coloane[0].trim() : "";
+        let titlu = coloane[4] ? coloane[4].trim() : "";
         if (!titlu) return; 
 
-        let actori = coloane[1] ? coloane[1].trim() : "-";
-        let gen = coloane[2] ? coloane[2].trim() : "-";
-        let durata = coloane[3] ? coloane[3].trim() : "-";
-        let imdb = coloane[4] ? coloane[4].trim() : "-";
-        let cinemagia = coloane[5] ? coloane[5].trim() : "-";
-
         maxNum++;
-        let noulCod = "F25-" + String(maxNum).padStart(3, '0');
-
         let filmNou = {
-            cod: noulCod,
+            cod: "F25-" + String(maxNum).padStart(3, '0'),
+            tip: coloane[0] ? coloane[0].trim() : "Film",
+            status: coloane[1] ? coloane[1].trim() : "De vizionat",
+            gen: coloane[2] ? coloane[2].trim() : "-",
+            an: coloane[3] ? coloane[3].trim() : "-",
             titlu: titlu,
-            tip: tipGlobal,
-            status: statusGlobal,
-            gen: gen,
-            an: anGlobal,
-            regizor: "-", 
-            durata: durata,
-            actori: actori,
-            imdb: imdb,
-            cinemagia: cinemagia,
+            regizor: coloane[5] ? coloane[5].trim() : "-",
+            durata: coloane[6] ? coloane[6].trim() : "-",
+            actori: coloane[7] ? coloane[7].trim() : "-",
+            observatii: coloane[8] ? coloane[8].trim() : "",
+            imdb: "-",
+            cinemagia: "-",
             url_img: ""
         };
 
@@ -388,11 +377,8 @@ function generateFormFieldsHTML() {
     if (currentCategory === 'filme') {
         container.innerHTML = `
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Cod Element *</label><input type="text" id="form-cod" required class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tip</label><select id="form-tip" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"><option value="Film">Film</option><option value="Serial">Serial</option></select></div>
-                    <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Status *</label><select id="form-status" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"><option value="Vizionat">Vizionat</option><option value="De vizionat">De vizionat</option><option value="In asteptare">In asteptare</option></select></div>
-                </div>
+                <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tip</label><select id="form-tip" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"><option value="Film">Film</option><option value="Serial">Serial</option></select></div>
+                <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Status *</label><select id="form-status" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"><option value="Vizionat">Vizionat</option><option value="De vizionat">De vizionat</option><option value="In asteptare">In asteptare</option></select></div>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Gen film</label><input type="text" id="form-gen" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
@@ -404,6 +390,7 @@ function generateFormFieldsHTML() {
                 <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Durată / Episoade</label><input type="text" id="form-durata" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
             </div>
             <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">În distribuție (Actori) *</label><input type="text" id="form-actori" required class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
+            <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Observații</label><input type="text" id="form-observatii" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
             <div class="flex flex-col mt-2"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">URL Afiș</label><input type="url" id="form-url-img" oninput="updateImagePreview(this.value)" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Link URL IMDB</label><input type="url" id="form-imdb" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
@@ -412,10 +399,7 @@ function generateFormFieldsHTML() {
         `;
     } else {
         container.innerHTML = `
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Cod Element *</label><input type="text" id="form-cod" required class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
-                <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tip Format</label><input type="text" id="form-tip" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
-            </div>
+            <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tip Format</label><input type="text" id="form-tip" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
             <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Autor / Artist *</label><input type="text" id="form-autor" required class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
             <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Titlu *</label><input type="text" id="form-titlu" required class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
             <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Gen / Domeniu</label><input type="text" id="form-gen" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
@@ -492,20 +476,39 @@ function openModal(mode, index = null) {
         deleteBtn.classList.add('hidden');
         
         if (currentCategory === 'filme') {
-            const codInput = document.getElementById('form-cod');
-            if (codInput) {
-                codInput.disabled = false;
-                codInput.classList.remove('opacity-50', 'cursor-not-allowed');
-                let maxNum = 0;
-                database.filme.forEach(f => {
-                    if (f.cod && f.cod.startsWith("F25-")) {
-                        const numPart = parseInt(f.cod.replace("F25-", ""));
-                        if (!isNaN(numPart) && numPart > maxNum) maxNum = numPart;
-                    }
-                });
-                codInput.value = "F25-" + String(maxNum + 1).padStart(3, '0');
+            if (importZone) {
+                importZone.innerHTML = `
+                    <details class="bg-gray-900 border border-gray-700 rounded-xl p-3 transition-all">
+                        <summary class="text-xs font-bold text-blue-400 uppercase tracking-wider cursor-pointer select-none flex items-center gap-1.5">
+                            <i class="fa-solid fa-file-import"></i> IMPORT DATE
+                        </summary>
+                        <div class="mt-2 space-y-2">
+                            <div class="overflow-x-auto rounded-lg border border-gray-700">
+                                <table class="w-full text-[10px] text-blue-300 font-mono border-collapse whitespace-nowrap">
+                                    <thead>
+                                        <tr class="bg-gray-900">
+                                            <th class="p-2 border-r border-gray-700">Tip</th>
+                                            <th class="p-2 border-r border-gray-700">Status</th>
+                                            <th class="p-2 border-r border-gray-700">Gen film</th>
+                                            <th class="p-2 border-r border-gray-700">An lansare</th>
+                                            <th class="p-2 border-r border-gray-700">Titlu original</th>
+                                            <th class="p-2 border-r border-gray-700">Regizor</th>
+                                            <th class="p-2 border-r border-gray-700">Durata/Episoade</th>
+                                            <th class="p-2 border-r border-gray-700">In distributie (Actori)</th>
+                                            <th class="p-2">Observații</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                            </div>
+                            <textarea id="excel-paste-area" rows="3" class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-xs text-gray-300 font-mono focus:outline-none focus:border-blue-500"></textarea>
+                            <div class="text-right">
+                                <button type="button" onclick="processExcelPaste()" class="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg transition shadow-md">Importă datele</button>
+                            </div>
+                        </div>
+                    </details>
+                `;
+                importZone.classList.remove('hidden');
             }
-            if (importZone) importZone.classList.remove('hidden');
         } else if (currentCategory === 'muzica') {
             if (importZone) {
                 importZone.innerHTML = `
@@ -543,17 +546,11 @@ function openModal(mode, index = null) {
         } else {
             if (importZone) importZone.classList.add('hidden');
         }
-        resetFormFields(false);
+        resetFormFields();
     } else if (mode === 'edit' && index !== null) {
         document.getElementById('form-edit-index').value = index;
         deleteBtn.classList.remove('hidden');
         if (importZone) importZone.classList.add('hidden'); 
-        
-        const codInput = document.getElementById('form-cod');
-        if (codInput) {
-            codInput.disabled = true;
-            codInput.classList.add('opacity-50', 'cursor-not-allowed');
-        }
         fillFormValues(index);
     }
 }
@@ -589,7 +586,6 @@ function fillFormValues(index) {
     }
 
     const item = database[currentCategory][index];
-    document.getElementById('form-cod').value = item.cod || '';
     document.getElementById('form-titlu').value = item.titlu || '';
     document.getElementById('form-tip').value = item.tip || '';
     if(document.getElementById('form-gen')) document.getElementById('form-gen').value = item.gen || '';
@@ -604,6 +600,7 @@ function fillFormValues(index) {
         document.getElementById('form-regizor').value = item.regizor || '';
         document.getElementById('form-durata').value = item.durata || '';
         document.getElementById('form-actori').value = item.actori || '';
+        document.getElementById('form-observatii').value = item.observatii || '';
         document.getElementById('form-imdb').value = item.imdb || '';
         document.getElementById('form-cinemagia').value = item.cinemagia || '';
     } else {
@@ -621,13 +618,12 @@ function saveElement(event) {
     }
 
     const idxStr = document.getElementById('form-edit-index').value;
-    const cod = document.getElementById('form-cod').value.trim();
     const titlu = document.getElementById('form-titlu').value.trim();
     const tip = document.getElementById('form-tip').value;
     const gen = document.getElementById('form-gen') ? document.getElementById('form-gen').value.trim() : '';
     const url_img = document.getElementById('form-url-img') ? document.getElementById('form-url-img').value.trim() : '';
 
-    let item = { cod, titlu, tip, gen, url_img };
+    let item = { titlu, tip, gen, url_img };
 
     if (currentCategory === 'filme') {
         item.status = document.getElementById('form-status').value;
@@ -635,6 +631,7 @@ function saveElement(event) {
         item.regizor = document.getElementById('form-regizor').value.trim();
         item.durata = document.getElementById('form-durata').value.trim();
         item.actori = document.getElementById('form-actori').value.trim();
+        item.observatii = document.getElementById('form-observatii').value.trim();
         item.imdb = document.getElementById('form-imdb').value.trim();
         item.cinemagia = document.getElementById('form-cinemagia').value.trim();
     } else {
@@ -642,11 +639,18 @@ function saveElement(event) {
     }
 
     if (idxStr === "") {
-        if (database[currentCategory].some(x => x.cod.toLowerCase() === cod.toLowerCase())) {
-            alert("Atenție! Acest Cod Element există deja în catalog."); return;
-        }
+        const prefix = currentCategory === 'filme' ? "F25-" : "C26-";
+        let maxNum = 0;
+        database[currentCategory].forEach(x => {
+            if (x.cod && x.cod.startsWith(prefix)) {
+                const numPart = parseInt(x.cod.replace(prefix, ""));
+                if (!isNaN(numPart) && numPart > maxNum) maxNum = numPart;
+            }
+        });
+        item.cod = prefix + String(maxNum + 1).padStart(3, '0');
         database[currentCategory].push(item);
     } else {
+        item.cod = database[currentCategory][parseInt(idxStr)].cod;
         database[currentCategory][parseInt(idxStr)] = item;
     }
 
@@ -670,15 +674,9 @@ function deleteCurrentElement() {
     }
 }
 
-function resetFormFields(clearCod = true) {
+function resetFormFields() {
     const idx = document.getElementById('form-edit-index').value;
-    const oldCod = document.getElementById('form-cod').value;
     document.getElementById('crud-form').reset();
     document.getElementById('form-edit-index').value = idx;
-    
-    const codInput = document.getElementById('form-cod');
-    if (codInput && !clearCod) {
-        codInput.value = oldCod;
-    }
     updateImagePreview("");
 }
