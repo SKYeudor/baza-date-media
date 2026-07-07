@@ -138,20 +138,16 @@ function buildTableHeaderUI() {
     }
 
     const headerRow = document.getElementById('table-header-row');
-    let actionsHtml = isAdmin ? `<th class="p-3 text-center w-24">Acțiuni</th>` : '';
     
     if (currentCategory === 'filme') {
         headerRow.innerHTML = `
-            <th class="p-3 sortable" onclick="handleHeaderSort('titlu')">TITLUL ORIGINAL ${getSortIndicator('titlu')}</th>
-            <th class="p-3 sortable" onclick="handleHeaderSort('actori')">DISTRIBUȚIA (ACTORI) ${getSortIndicator('actori')}</th>
-            <th class="p-3 sortable" onclick="handleHeaderSort('regizor')">REGIZOR ${getSortIndicator('regizor')}</th>
-            <th class="p-3 sortable" onclick="handleHeaderSort('gen')">GEN ${getSortIndicator('gen')}</th>
-            <th class="p-3 sortable w-24" onclick="handleHeaderSort('durata')">DURATA ${getSortIndicator('durata')}</th>
-            <th class="p-3 text-center w-20">IMDB</th>
-            <th class="p-3 text-center w-24">CineMagia</th>
-            ${actionsHtml}
+            <th class="p-3 sortable" onclick="handleHeaderSort('titlu')">Titlu original ${getSortIndicator('titlu')}</th>
+            <th class="p-3 sortable w-28" onclick="handleHeaderSort('an')">An lansare ${getSortIndicator('an')}</th>
+            <th class="p-3 sortable w-32" onclick="handleHeaderSort('durata')">Durata/Episoade ${getSortIndicator('durata')}</th>
+            <th class="p-3 text-center w-32">Vezi detalii</th>
         `;
     } else {
+        let actionsHtml = isAdmin ? `<th class="p-3 text-center w-24">Acțiuni</th>` : '';
         headerRow.innerHTML = `
             <th class="p-3 sortable" onclick="handleHeaderSort('autor')">Autor/Artist ${getSortIndicator('autor')}</th>
             <th class="p-3 sortable" onclick="handleHeaderSort('titlu')">Titlu ${getSortIndicator('titlu')}</th>
@@ -264,31 +260,15 @@ function renderTable() {
         ` : '';
 
         if (currentCategory === 'filme') {
-            const hasImdb = item.imdb && item.imdb.trim() !== "" && item.imdb !== "-" && item.imdb.toLowerCase().startsWith('http');
-            const imdbBtnClass = hasImdb ? 'imdb-btn-active' : 'imdb-btn-inactive';
-            const imdbAttr = hasImdb ? `href="${item.imdb}" target="_blank"` : `onclick="alert('Fără link IMDB valid.')"`;
-
-            const hasCineMagia = item.cinemagia && item.cinemagia.trim() !== "" && item.cinemagia !== "-" && item.cinemagia.toLowerCase().startsWith('http');
-            const cmBtnClass = hasCineMagia ? 'imdb-btn-active' : 'imdb-btn-inactive';
-            const cmAttr = hasCineMagia ? `href="${item.cinemagia}" target="_blank"` : `onclick="alert('Fără link CineMagia valid.')"`;
-
             tr.innerHTML = `
                 <td class="p-3 font-semibold text-white">${item.titlu}</td>
-                <td class="p-3 text-xs text-gray-400 italic">${item.actori || '-'}</td>
-                <td class="p-3 text-xs text-gray-400">${item.regizor || '-'}</td>
-                <td class="p-3 text-xs text-gray-400">${item.gen || '-'}</td>
+                <td class="p-3 text-xs text-gray-400">${item.an || '-'}</td>
                 <td class="p-3 text-xs text-gray-400 font-mono">${item.durata || '-'}</td>
                 <td class="p-3 text-center">
-                    <a ${imdbAttr} class="${imdbBtnClass} px-2 py-0.5 rounded text-[10px] font-extrabold tracking-tight inline-flex items-center gap-1 transition shadow-sm cursor-pointer">
-                        <i class="fa-brands fa-imdb text-sm"></i> IMDB
-                    </a>
+                    <button onclick="showDetails(${originalIndex})" class="px-3 py-1 bg-slate-700 hover:bg-slate-600 border border-slate-600 text-white text-xs font-bold rounded-lg transition cursor-pointer">
+                        <i class="fa-solid fa-eye mr-1"></i> Vezi detalii
+                    </button>
                 </td>
-                <td class="p-3 text-center">
-                    <a ${cmAttr} class="${cmBtnClass} px-2 py-0.5 rounded text-[10px] font-extrabold tracking-tight inline-flex items-center gap-1 transition shadow-sm cursor-pointer">
-                        <i class="fa-solid fa-film text-sm"></i> CineMagia
-                    </a>
-                </td>
-                ${actionTd}
             `;
         } else {
             tr.innerHTML = `
@@ -377,16 +357,16 @@ function processExcelPaste() {
 function applyImageGeometry() {
     const wrapper = document.getElementById('image-wrapper');
     if (currentCategory === 'filme') {
-        wrapper.style.minWidth = '160px'; wrapper.style.maxWidth = '160px'; wrapper.style.width = '160px'; wrapper.style.height = '225px';
-        document.getElementById('form-image-label').textContent = "Afiș (160x225)";
+        wrapper.style.minWidth = '180px'; wrapper.style.maxWidth = '180px'; wrapper.style.width = '180px'; wrapper.style.height = '255px';
+        document.getElementById('form-image-label').textContent = "Afiș (180x255)";
         document.getElementById('modal-category-badge').textContent = "Filme & Seriale";
     } else if (currentCategory === 'muzica') {
-        wrapper.style.minWidth = '175px'; wrapper.style.maxWidth = '175px'; wrapper.style.width = '175px'; wrapper.style.height = '175px';
-        document.getElementById('form-image-label').textContent = "Copertă (175x175)";
+        wrapper.style.minWidth = '195px'; wrapper.style.maxWidth = '195px'; wrapper.style.width = '195px'; wrapper.style.height = '195px';
+        document.getElementById('form-image-label').textContent = "Copertă (195x195)";
         document.getElementById('modal-category-badge').textContent = "MUZICĂ";
     } else {
-        wrapper.style.minWidth = '150px'; wrapper.style.maxWidth = '150px'; wrapper.style.width = '150px'; wrapper.style.height = '220px';
-        document.getElementById('form-image-label').textContent = "Copertă (150x220)";
+        wrapper.style.minWidth = '175px'; wrapper.style.maxWidth = '175px'; wrapper.style.width = '175px'; wrapper.style.height = '235px';
+        document.getElementById('form-image-label').textContent = "Copertă (175x235)";
         document.getElementById('modal-category-badge').textContent = "CĂRȚI";
     }
 }
@@ -620,6 +600,84 @@ function openModal(mode, index = null) {
 
 function closeModal() { 
     document.getElementById('crud-modal').classList.add('hidden'); 
+}
+
+let currentDetailsIndex = null;
+
+function showDetails(index) {
+    const item = database[currentCategory][index];
+    if (!item) return;
+
+    document.getElementById('details-titlu').textContent = item.titlu || '-';
+
+    const cover = document.getElementById('details-cover');
+    if (item.url_img && item.url_img.trim() !== "" && item.url_img.toLowerCase().startsWith('http')) {
+        cover.src = "https://images.weserv.nl/?url=" + encodeURIComponent(item.url_img.trim().replace(/^https?:\/\//i, ''));
+        cover.classList.remove('hidden');
+    } else {
+        cover.src = "";
+        cover.classList.add('hidden');
+    }
+
+    const subtitle = document.getElementById('details-autor');
+    const rest = document.getElementById('details-rest');
+
+    if (currentCategory === 'filme') {
+        subtitle.textContent = item.regizor ? `Regizor: ${item.regizor}` : '';
+        let linkuri = '';
+        if (item.imdb && item.imdb.toLowerCase().startsWith('http')) linkuri += `<p><a href="${item.imdb}" target="_blank" class="text-blue-400 underline">Link IMDB</a></p>`;
+        if (item.cinemagia && item.cinemagia.toLowerCase().startsWith('http')) linkuri += `<p><a href="${item.cinemagia}" target="_blank" class="text-blue-400 underline">Link CineMagia</a></p>`;
+        rest.innerHTML = `
+            <p><span class="text-gray-500">Tip:</span> ${item.tip || '-'}</p>
+            <p><span class="text-gray-500">Status:</span> ${item.status || '-'}</p>
+            <p><span class="text-gray-500">Gen:</span> ${item.gen || '-'}</p>
+            <p><span class="text-gray-500">Durata/Episoade:</span> ${item.durata || '-'}</p>
+            <p><span class="text-gray-500">În distribuție (Actori):</span> ${item.actori || '-'}</p>
+            <p><span class="text-gray-500">Observații:</span> ${item.observatii || '-'}</p>
+            ${linkuri}
+        `;
+    } else if (currentCategory === 'muzica') {
+        subtitle.textContent = item.autor || '';
+        rest.innerHTML = `
+            <p><span class="text-gray-500">Forma de editare:</span> ${item.forma_editare || '-'}</p>
+            <p><span class="text-gray-500">Tip suport:</span> ${item.tip_suport || '-'}</p>
+            <p><span class="text-gray-500">Tip înregistrare:</span> ${item.tip_inregistrare || '-'}</p>
+            <p><span class="text-gray-500">An lansare:</span> ${item.an || '-'}</p>
+            <p><span class="text-gray-500">Gen muzical:</span> ${item.gen || '-'}</p>
+            <p><span class="text-gray-500">Extras din:</span> ${item.extras_din || '-'}</p>
+            <p><span class="text-gray-500">Observații:</span> ${item.observatii || '-'}</p>
+        `;
+    } else {
+        subtitle.textContent = item.autor || '';
+        rest.innerHTML = `
+            <p><span class="text-gray-500">Anul apariției:</span> ${item.an || '-'}</p>
+            <p><span class="text-gray-500">Editura:</span> ${item.editura || '-'}</p>
+            <p><span class="text-gray-500">Ediția:</span> ${item.editie || '-'}</p>
+            <p><span class="text-gray-500">Nr. pagini:</span> ${item.nr_pagini || '-'}</p>
+            <p><span class="text-gray-500">Suport fizic:</span> ${item.suport_fizic || '-'}</p>
+            <p><span class="text-gray-500">Gen tematic:</span> ${item.gen_tematic || '-'}</p>
+            <p><span class="text-gray-500">Observații:</span> ${item.observatii || '-'}</p>
+        `;
+    }
+
+    currentDetailsIndex = index;
+    const editBtn = document.getElementById('details-edit-btn');
+    if (isAdmin) {
+        editBtn.classList.remove('hidden');
+    } else {
+        editBtn.classList.add('hidden');
+    }
+
+    document.getElementById('details-modal').classList.remove('hidden');
+}
+
+function closeDetailsModal() {
+    document.getElementById('details-modal').classList.add('hidden');
+}
+
+function editFromDetails() {
+    closeDetailsModal();
+    openModal('edit', currentDetailsIndex);
 }
 
 function updateImagePreview(url) {
