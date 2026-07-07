@@ -1,8 +1,6 @@
 const SUPORT_FIZIC_OPTIONS = ["Tipărite pe hârtie", "Electronice"];
 const GEN_TEMATIC_OPTIONS = ["Polițist", "Thriller", "Romance", "Istoric", "Social", "Acțiune", "Science-Fiction", "Fantasy", "Horror"];
 
-let currentDetailsIndex = null;
-
 function getUniqueYearsFromCartiDB() {
     const aniSet = new Set();
     (database.carti || []).forEach(c => {
@@ -118,7 +116,7 @@ window.renderCartiTable = function() {
             <td class="p-3 text-gray-300 font-medium">${item.titlu || '-'}</td>
             <td class="p-3 text-xs text-gray-400">${item.an || '-'}</td>
             <td class="p-3 text-center">
-                <button onclick="showBookDetails(${originalIndex})" class="px-3 py-1 bg-slate-700 hover:bg-slate-600 border border-slate-600 text-white text-xs font-bold rounded-lg transition cursor-pointer">
+                <button onclick="showDetails(${originalIndex})" class="px-3 py-1 bg-slate-700 hover:bg-slate-600 border border-slate-600 text-white text-xs font-bold rounded-lg transition cursor-pointer">
                     <i class="fa-solid fa-eye mr-1"></i> Vezi detalii
                 </button>
             </td>
@@ -267,50 +265,3 @@ window.processCartiExcelPaste = function() {
         alert("Formatul rândurilor nu corespunde structurii cerute.");
     }
 };
-
-function showBookDetails(index) {
-    const item = database.carti[index];
-    if (!item) return;
-
-    document.getElementById('details-titlu').textContent = item.titlu || '-';
-    document.getElementById('details-autor').textContent = item.autor || '-';
-
-    const cover = document.getElementById('details-cover');
-    if (item.url_img && item.url_img.trim() !== "" && item.url_img.toLowerCase().startsWith('http')) {
-        cover.src = "https://images.weserv.nl/?url=" + encodeURIComponent(item.url_img.trim().replace(/^https?:\/\//i, ''));
-        cover.classList.remove('hidden');
-    } else {
-        cover.src = "";
-        cover.classList.add('hidden');
-    }
-
-    const rest = document.getElementById('details-rest');
-    rest.innerHTML = `
-        <p><span class="text-gray-500">Anul apariției:</span> ${item.an || '-'}</p>
-        <p><span class="text-gray-500">Editura:</span> ${item.editura || '-'}</p>
-        <p><span class="text-gray-500">Ediția:</span> ${item.editie || '-'}</p>
-        <p><span class="text-gray-500">Nr. pagini:</span> ${item.nr_pagini || '-'}</p>
-        <p><span class="text-gray-500">Suport fizic:</span> ${item.suport_fizic || '-'}</p>
-        <p><span class="text-gray-500">Gen tematic:</span> ${item.gen_tematic || '-'}</p>
-        <p><span class="text-gray-500">Observații:</span> ${item.observatii || '-'}</p>
-    `;
-
-    currentDetailsIndex = index;
-    const editBtn = document.getElementById('details-edit-btn');
-    if (isAdmin) {
-        editBtn.classList.remove('hidden');
-    } else {
-        editBtn.classList.add('hidden');
-    }
-
-    document.getElementById('details-modal').classList.remove('hidden');
-}
-
-function closeDetailsModal() {
-    document.getElementById('details-modal').classList.add('hidden');
-}
-
-function editFromDetails() {
-    closeDetailsModal();
-    openModal('edit', currentDetailsIndex);
-}
