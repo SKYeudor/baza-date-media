@@ -5,6 +5,10 @@ function resetFiltersObject() {
         window.resetMuzicaFiltersObject();
         return;
     }
+    if (currentCategory === 'carti' && window.resetCartiFiltersObject) {
+        window.resetCartiFiltersObject();
+        return;
+    }
     activeFilters = { tip: "Toate", status: "Toate", an: "Toate", text1: "", text2: "" };
 }
 
@@ -42,6 +46,10 @@ function getUniqueYearsFromDB() {
 function buildFiltersUI() {
     if (currentCategory === 'muzica' && window.buildMuzicaFiltersUI) {
         window.buildMuzicaFiltersUI();
+        return;
+    }
+    if (currentCategory === 'carti' && window.buildCartiFiltersUI) {
+        window.buildCartiFiltersUI();
         return;
     }
 
@@ -124,6 +132,10 @@ function buildTableHeaderUI() {
         window.buildMuzicaTableHeaderUI();
         return;
     }
+    if (currentCategory === 'carti' && window.buildCartiTableHeaderUI) {
+        window.buildCartiTableHeaderUI();
+        return;
+    }
 
     const headerRow = document.getElementById('table-header-row');
     let actionsHtml = isAdmin ? `<th class="p-3 text-center w-24">Acțiuni</th>` : '';
@@ -167,6 +179,10 @@ function handleSearch(event) {
         window.handleMuzicaSearch();
         return;
     }
+    if (currentCategory === 'carti' && window.handleCartiSearch) {
+        window.handleCartiSearch();
+        return;
+    }
     if (document.getElementById('filter-tip')) activeFilters.tip = document.getElementById('filter-tip').value;
     if (document.getElementById('filter-status')) activeFilters.status = document.getElementById('filter-status').value;
     if (document.getElementById('filter-an')) activeFilters.an = document.getElementById('filter-an').value;
@@ -184,6 +200,10 @@ function resetCriteria() {
 function renderTable() {
     if (currentCategory === 'muzica' && window.renderMuzicaTable) {
         window.renderMuzicaTable();
+        return;
+    }
+    if (currentCategory === 'carti' && window.renderCartiTable) {
+        window.renderCartiTable();
         return;
     }
 
@@ -291,6 +311,10 @@ function processExcelPaste() {
         window.processMuzicaExcelPaste();
         return;
     }
+    if (currentCategory === 'carti' && window.processCartiExcelPaste) {
+        window.processCartiExcelPaste();
+        return;
+    }
 
     const txt = document.getElementById('excel-paste-area').value.trim();
     if (!txt) {
@@ -361,8 +385,8 @@ function applyImageGeometry() {
         document.getElementById('form-image-label').textContent = "Copertă (175x175)";
         document.getElementById('modal-category-badge').textContent = "MUZICĂ";
     } else {
-        wrapper.style.minWidth = '175px'; wrapper.style.maxWidth = '175px'; wrapper.style.width = '175px'; wrapper.style.height = '175px';
-        document.getElementById('form-image-label').textContent = "Copertă (175x175)";
+        wrapper.style.minWidth = '150px'; wrapper.style.maxWidth = '150px'; wrapper.style.width = '150px'; wrapper.style.height = '220px';
+        document.getElementById('form-image-label').textContent = "Copertă (150x220)";
         document.getElementById('modal-category-badge').textContent = "CĂRȚI";
     }
 }
@@ -370,6 +394,10 @@ function applyImageGeometry() {
 function generateFormFieldsHTML() {
     if (currentCategory === 'muzica' && window.generateMuzicaFormFieldsHTML) {
         window.generateMuzicaFormFieldsHTML();
+        return;
+    }
+    if (currentCategory === 'carti' && window.generateCartiFormFieldsHTML) {
+        window.generateCartiFormFieldsHTML();
         return;
     }
 
@@ -543,6 +571,41 @@ function openModal(mode, index = null) {
                 `;
                 importZone.classList.remove('hidden');
             }
+        } else if (currentCategory === 'carti') {
+            if (importZone) {
+                importZone.innerHTML = `
+                    <details class="bg-gray-900 border border-gray-700 rounded-xl p-3 transition-all">
+                        <summary class="text-xs font-bold text-blue-400 uppercase tracking-wider cursor-pointer select-none flex items-center gap-1.5">
+                            <i class="fa-solid fa-file-import"></i> IMPORT DATE
+                        </summary>
+                        <div class="mt-2 space-y-2">
+                            <div class="overflow-x-auto rounded-lg border border-gray-700">
+                                <table class="w-full text-[10px] text-blue-300 font-mono border-collapse whitespace-nowrap">
+                                    <thead>
+                                        <tr class="bg-gray-900">
+                                            <th class="p-2 border-r border-gray-700">Autor</th>
+                                            <th class="p-2 border-r border-gray-700">Titlul</th>
+                                            <th class="p-2 border-r border-gray-700">Anul apariției</th>
+                                            <th class="p-2 border-r border-gray-700">Editura</th>
+                                            <th class="p-2 border-r border-gray-700">Ediția</th>
+                                            <th class="p-2 border-r border-gray-700">Nr.pagini</th>
+                                            <th class="p-2 border-r border-gray-700">Suport fizic</th>
+                                            <th class="p-2 border-r border-gray-700">Gen tematic</th>
+                                            <th class="p-2 border-r border-gray-700">Observații</th>
+                                            <th class="p-2">Link copertă</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                            </div>
+                            <textarea id="excel-paste-area" rows="3" class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-xs text-gray-300 font-mono focus:outline-none focus:border-blue-500"></textarea>
+                            <div class="text-right">
+                                <button type="button" onclick="processCartiExcelPaste()" class="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg transition shadow-md">Importă datele</button>
+                            </div>
+                        </div>
+                    </details>
+                `;
+                importZone.classList.remove('hidden');
+            }
         } else {
             if (importZone) importZone.classList.add('hidden');
         }
@@ -584,6 +647,10 @@ function fillFormValues(index) {
         window.fillMuzicaFormValues(index);
         return;
     }
+    if (currentCategory === 'carti' && window.fillCartiFormValues) {
+        window.fillCartiFormValues(index);
+        return;
+    }
 
     const item = database[currentCategory][index];
     document.getElementById('form-titlu').value = item.titlu || '';
@@ -614,6 +681,10 @@ function saveElement(event) {
 
     if (currentCategory === 'muzica' && window.saveMuzicaElement) {
         window.saveMuzicaElement(event);
+        return;
+    }
+    if (currentCategory === 'carti' && window.saveCartiElement) {
+        window.saveCartiElement(event);
         return;
     }
 
