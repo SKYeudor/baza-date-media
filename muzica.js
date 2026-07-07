@@ -87,14 +87,11 @@ window.resetMuzicaFiltersObject = function() {
 
 window.buildMuzicaTableHeaderUI = function() {
     const headerRow = document.getElementById('table-header-row');
-    let actionsHtml = isAdmin ? `<th class="p-3 text-center w-24">Acțiuni</th>` : '';
-    
     headerRow.innerHTML = `
-        <th class="p-3 sortable" onclick="handleHeaderSort('autor')">Artist / Grup ${getSortIndicator('autor')}</th>
-        <th class="p-3 sortable" onclick="handleHeaderSort('titlu')">Titlul ${getSortIndicator('titlu')}</th>
-        <th class="p-3 sortable" onclick="handleHeaderSort('gen')">Gen muzical ${getSortIndicator('gen')}</th>
-        <th class="p-3 sortable" onclick="handleHeaderSort('observatii')">Observații ${getSortIndicator('observatii')}</th>
-        ${actionsHtml}
+        <th class="p-3 sortable" onclick="handleHeaderSort('autor')">Artist/Grup ${getSortIndicator('autor')}</th>
+        <th class="p-3 sortable" onclick="handleHeaderSort('titlu')">Titlu ${getSortIndicator('titlu')}</th>
+        <th class="p-3 sortable w-28" onclick="handleHeaderSort('an')">An lansare ${getSortIndicator('an')}</th>
+        <th class="p-3 text-center w-32">Vezi detalii</th>
     `;
 };
 
@@ -129,18 +126,15 @@ window.renderMuzicaTable = function() {
         const tr = document.createElement('tr');
         tr.className = "hover:bg-gray-750/40 transition border-b border-gray-700/40 align-middle";
 
-        let actionTd = isAdmin ? `
-            <td class="p-3 text-center space-x-1 whitespace-nowrap">
-                <button onclick="openModal('edit', ${originalIndex})" class="p-1.5 text-blue-400 hover:text-blue-300 hover:bg-gray-700 rounded-lg transition" title="Modifică"><i class="fa-solid fa-pen-to-square"></i></button>
-            </td>
-        ` : '';
-
         tr.innerHTML = `
             <td class="p-3 font-semibold text-white">${item.autor || '-'}</td>
             <td class="p-3 text-gray-300 font-medium">${item.titlu || '-'}</td>
-            <td class="p-3 text-xs text-gray-400">${item.gen || '-'}</td>
-            <td class="p-3 text-xs text-gray-400 italic">${item.observatii || '-'}</td>
-            ${actionTd}
+            <td class="p-3 text-xs text-gray-400">${item.an || '-'}</td>
+            <td class="p-3 text-center">
+                <button onclick="showDetails(${originalIndex})" class="px-3 py-1 bg-slate-700 hover:bg-slate-600 border border-slate-600 text-white text-xs font-bold rounded-lg transition cursor-pointer">
+                    <i class="fa-solid fa-eye mr-1"></i> Vezi detalii
+                </button>
+            </td>
         `;
         tbody.appendChild(tr);
     });
