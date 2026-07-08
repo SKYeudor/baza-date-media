@@ -277,8 +277,8 @@ function renderTable() {
                 <td class="p-3 font-semibold text-white">${item.titlu}</td>
                 <td class="p-3 text-gray-300">${item.titlu_ro || '-'}</td>
                 <td class="p-3 text-xs text-gray-400 italic">${item.actori || '-'}</td>
-                <td class="p-3 text-xs text-gray-400">${item.an || '-'}</td>
-                <td class="p-3 text-xs text-gray-400 font-mono">${item.durata || '-'}</td>
+                <td class="p-3 text-xs text-gray-400 text-center">${item.an || '-'}</td>
+                <td class="p-3 text-xs text-gray-400 font-mono text-center">${item.durata || '-'}</td>
                 <td class="p-3 text-center">
                     <button onclick="showDetails(${originalIndex})" class="px-3 py-1 bg-slate-700 hover:bg-slate-600 border border-slate-600 text-white text-xs font-bold rounded-lg transition cursor-pointer">
                         <i class="fa-solid fa-eye mr-1"></i> Vezi detalii
