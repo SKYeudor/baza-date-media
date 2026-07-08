@@ -612,7 +612,7 @@ function showDetails(index) {
 
     const cover = document.getElementById('details-cover');
     if (item.url_img && item.url_img.trim() !== "" && item.url_img.toLowerCase().startsWith('http')) {
-        cover.src = "https://images.weserv.nl/?url=" + encodeURIComponent(item.url_img.trim().replace(/^https?:\/\//i, ''));
+        cover.src = item.url_img.trim();
         cover.classList.remove('hidden');
     } else {
         cover.src = "";
@@ -685,10 +685,7 @@ function updateImagePreview(url) {
     const text = document.getElementById('image-placeholder-text');
     const img = document.getElementById('image-preview-element');
     if (url && url.trim() !== "" && url.toLowerCase().startsWith('http')) {
-        let cleanUrl = url.trim();
-        let proxyUrl = "https://images.weserv.nl/?url=" + encodeURIComponent(cleanUrl.replace(/^https?:\/\//i, ''));
-        
-        img.src = proxyUrl; 
+        img.src = url.trim(); 
         img.classList.remove('hidden'); 
         icon.classList.add('hidden'); 
         text.classList.add('hidden');
