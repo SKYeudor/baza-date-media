@@ -9,7 +9,7 @@ function resetFiltersObject() {
         window.resetCartiFiltersObject();
         return;
     }
-    activeFilters = { tip: "Toate", status: "Toate", an: "Toate", text1: "", text2: "" };
+    activeFilters = { tip: "Toate", status: "Toate", an: "Toate", text1: "", text2: "", text3: "" };
 }
 
 function switchCategory(cat) {
@@ -86,12 +86,16 @@ function buildFiltersUI() {
                 </select>
             </div>
             <div class="flex flex-col flex-1 min-w-[180px]">
-                <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Caută după Actor</label>
-                <input type="text" id="filter-text1" placeholder="Scrie actor..." class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500">
+                <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Caută după titlu original</label>
+                <input type="text" id="filter-text2" placeholder="Scrie titlu original..." class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500">
             </div>
             <div class="flex flex-col flex-1 min-w-[180px]">
-                <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Caută după Titlu</label>
-                <input type="text" id="filter-text2" placeholder="Scrie titlu..." class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500">
+                <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Caută după titlul RO</label>
+                <input type="text" id="filter-text3" placeholder="Scrie titlul RO..." class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500">
+            </div>
+            <div class="flex flex-col flex-1 min-w-[180px]">
+                <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Caută după Actor</label>
+                <input type="text" id="filter-text1" placeholder="Scrie actor..." class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500">
             </div>
         `;
     } else {
@@ -120,6 +124,7 @@ function buildFiltersUI() {
     if (document.getElementById('filter-an')) document.getElementById('filter-an').value = activeFilters.an || "Toate";
     if (document.getElementById('filter-text1')) document.getElementById('filter-text1').value = activeFilters.text1 || "";
     if (document.getElementById('filter-text2')) document.getElementById('filter-text2').value = activeFilters.text2 || "";
+    if (document.getElementById('filter-text3')) document.getElementById('filter-text3').value = activeFilters.text3 || "";
 }
 
 function getSortIndicator(key) {
@@ -142,6 +147,8 @@ function buildTableHeaderUI() {
     if (currentCategory === 'filme') {
         headerRow.innerHTML = `
             <th class="p-3 sortable" onclick="handleHeaderSort('titlu')">Titlu original ${getSortIndicator('titlu')}</th>
+            <th class="p-3 sortable" onclick="handleHeaderSort('titlu_ro')">Titlu RO ${getSortIndicator('titlu_ro')}</th>
+            <th class="p-3 sortable" onclick="handleHeaderSort('actori')">Actori ${getSortIndicator('actori')}</th>
             <th class="p-3 sortable w-28" onclick="handleHeaderSort('an')">An lansare ${getSortIndicator('an')}</th>
             <th class="p-3 sortable w-32" onclick="handleHeaderSort('durata')">Durata/Episoade ${getSortIndicator('durata')}</th>
             <th class="p-3 text-center w-32">Vezi detalii</th>
@@ -184,6 +191,7 @@ function handleSearch(event) {
     if (document.getElementById('filter-an')) activeFilters.an = document.getElementById('filter-an').value;
     if (document.getElementById('filter-text1')) activeFilters.text1 = document.getElementById('filter-text1').value.trim().toLowerCase();
     if (document.getElementById('filter-text2')) activeFilters.text2 = document.getElementById('filter-text2').value.trim().toLowerCase();
+    if (document.getElementById('filter-text3')) activeFilters.text3 = document.getElementById('filter-text3').value.trim().toLowerCase();
     renderTable();
 }
 
@@ -229,6 +237,11 @@ function renderTable() {
             const titlu = item.titlu ? item.titlu.toLowerCase() : "";
             if (!titlu.includes(activeFilters.text2)) return false;
         }
+
+        if (activeFilters.text3 && currentCategory === 'filme') {
+            const titluRo = item.titlu_ro ? item.titlu_ro.toLowerCase() : "";
+            if (!titluRo.includes(activeFilters.text3)) return false;
+        }
         return true;
     });
 
@@ -262,6 +275,8 @@ function renderTable() {
         if (currentCategory === 'filme') {
             tr.innerHTML = `
                 <td class="p-3 font-semibold text-white">${item.titlu}</td>
+                <td class="p-3 text-gray-300">${item.titlu_ro || '-'}</td>
+                <td class="p-3 text-xs text-gray-400 italic">${item.actori || '-'}</td>
                 <td class="p-3 text-xs text-gray-400">${item.an || '-'}</td>
                 <td class="p-3 text-xs text-gray-400 font-mono">${item.durata || '-'}</td>
                 <td class="p-3 text-center">
@@ -329,10 +344,11 @@ function processExcelPaste() {
             gen: coloane[2] ? coloane[2].trim() : "-",
             an: coloane[3] ? coloane[3].trim() : "-",
             titlu: titlu,
-            regizor: coloane[5] ? coloane[5].trim() : "-",
-            durata: coloane[6] ? coloane[6].trim() : "-",
-            actori: coloane[7] ? coloane[7].trim() : "-",
-            observatii: coloane[8] ? coloane[8].trim() : "",
+            titlu_ro: coloane[5] ? coloane[5].trim() : "",
+            regizor: coloane[6] ? coloane[6].trim() : "-",
+            durata: coloane[7] ? coloane[7].trim() : "-",
+            actori: coloane[8] ? coloane[8].trim() : "-",
+            observatii: coloane[9] ? coloane[9].trim() : "",
             imdb: "-",
             cinemagia: "-",
             url_img: ""
@@ -393,6 +409,7 @@ function generateFormFieldsHTML() {
                 <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">An lansare</label><input type="text" id="form-an" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
             </div>
             <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Titlu original *</label><input type="text" id="form-titlu" required class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
+            <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Titlul RO</label><input type="text" id="form-titlu-ro" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Regizor</label><input type="text" id="form-regizor" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
                 <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Durată / Episoade</label><input type="text" id="form-durata" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
@@ -500,6 +517,7 @@ function openModal(mode, index = null) {
                                             <th class="p-2 border-r border-gray-700">Gen film</th>
                                             <th class="p-2 border-r border-gray-700">An lansare</th>
                                             <th class="p-2 border-r border-gray-700">Titlu original</th>
+                                            <th class="p-2 border-r border-gray-700">Titlu RO</th>
                                             <th class="p-2 border-r border-gray-700">Regizor</th>
                                             <th class="p-2 border-r border-gray-700">Durata/Episoade</th>
                                             <th class="p-2 border-r border-gray-700">In distributie (Actori)</th>
@@ -628,6 +646,7 @@ function showDetails(index) {
         if (item.imdb && item.imdb.toLowerCase().startsWith('http')) linkuri += `<p><a href="${item.imdb}" target="_blank" class="text-blue-400 underline">Link IMDB</a></p>`;
         if (item.cinemagia && item.cinemagia.toLowerCase().startsWith('http')) linkuri += `<p><a href="${item.cinemagia}" target="_blank" class="text-blue-400 underline">Link CineMagia</a></p>`;
         rest.innerHTML = `
+            <p><span class="text-gray-500">Titlu RO:</span> ${item.titlu_ro || '-'}</p>
             <p><span class="text-gray-500">Tip:</span> ${item.tip || '-'}</p>
             <p><span class="text-gray-500">Status:</span> ${item.status || '-'}</p>
             <p><span class="text-gray-500">Gen:</span> ${item.gen || '-'}</p>
@@ -718,6 +737,7 @@ function fillFormValues(index) {
     }
 
     if (currentCategory === 'filme') {
+        document.getElementById('form-titlu-ro').value = item.titlu_ro || '';
         document.getElementById('form-status').value = item.status || 'De vizionat';
         document.getElementById('form-regizor').value = item.regizor || '';
         document.getElementById('form-durata').value = item.durata || '';
@@ -752,6 +772,7 @@ function saveElement(event) {
     let item = { titlu, tip, gen, url_img };
 
     if (currentCategory === 'filme') {
+        item.titlu_ro = document.getElementById('form-titlu-ro').value.trim();
         item.status = document.getElementById('form-status').value;
         item.an = document.getElementById('form-an').value.trim();
         item.regizor = document.getElementById('form-regizor').value.trim();
