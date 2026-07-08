@@ -146,11 +146,11 @@ function buildTableHeaderUI() {
     
     if (currentCategory === 'filme') {
         headerRow.innerHTML = `
-            <th class="p-3 sortable" onclick="handleHeaderSort('titlu')">Titlu original ${getSortIndicator('titlu')}</th>
-            <th class="p-3 sortable" onclick="handleHeaderSort('titlu_ro')">Titlu RO ${getSortIndicator('titlu_ro')}</th>
-            <th class="p-3 sortable" onclick="handleHeaderSort('actori')">Actori ${getSortIndicator('actori')}</th>
-            <th class="p-3 sortable w-28" onclick="handleHeaderSort('an')">An lansare ${getSortIndicator('an')}</th>
-            <th class="p-3 sortable w-32" onclick="handleHeaderSort('durata')">Durata/Episoade ${getSortIndicator('durata')}</th>
+             <th class="p-3 sortable w-1/5" onclick="handleHeaderSort('titlu')">Titlu original ${getSortIndicator('titlu')}</th>
+            <th class="p-3 sortable w-1/5" onclick="handleHeaderSort('titlu_ro')">Titlu RO ${getSortIndicator('titlu_ro')}</th>
+            <th class="p-3 sortable w-1/5" onclick="handleHeaderSort('actori')">Actori ${getSortIndicator('actori')}</th>
+            <th class="p-3 sortable w-16 text-center leading-tight" onclick="handleHeaderSort('an')">An<br>lansare ${getSortIndicator('an')}</th>
+            <th class="p-3 sortable w-16 text-center leading-tight" onclick="handleHeaderSort('durata')">Durata/<br>Episoade ${getSortIndicator('durata')}</th>
             <th class="p-3 text-center w-32">Vezi detalii</th>
         `;
     } else {
