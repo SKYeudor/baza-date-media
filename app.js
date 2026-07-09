@@ -635,7 +635,7 @@ function showDetails(index) {
 
     card.classList.remove('max-w-lg', 'max-w-3xl', 'p-6', 'p-9');
     layout.classList.remove('gap-5', 'gap-8');
-    cover.classList.remove('w-28', 'h-40', 'w-44', 'h-44');
+    cover.classList.remove('w-28', 'h-40', 'w-44', 'h-44', 'w-[168px]', 'h-[240px]');
     titleEl.classList.remove('text-lg', 'text-2xl');
     subtitleEl.classList.remove('text-sm', 'text-xl');
     restEl.classList.remove('text-xs', 'text-lg');
@@ -648,12 +648,12 @@ function showDetails(index) {
         subtitleEl.classList.add('text-xl');
         restEl.classList.add('text-lg');
     } else {
-        card.classList.add('max-w-lg', 'p-6');
-        layout.classList.add('gap-5');
-        cover.classList.add('w-28', 'h-40');
-        titleEl.classList.add('text-lg');
-        subtitleEl.classList.add('text-sm');
-        restEl.classList.add('text-xs');
+        card.classList.add('max-w-3xl', 'p-9');
+        layout.classList.add('gap-8');
+        cover.classList.add('w-[168px]', 'h-[240px]');
+        titleEl.classList.add('text-2xl');
+        subtitleEl.classList.add('text-xl');
+        restEl.classList.add('text-lg');
     }
 
     titleEl.textContent = item.titlu || '-';
