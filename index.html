@@ -142,11 +142,11 @@
     </div>
 
     <div id="details-modal" class="fixed inset-0 bg-black/80 z-60 flex items-center justify-center p-4 hidden">
-        <div class="bg-gray-800 border border-gray-700 rounded-2xl w-full max-w-lg p-6 shadow-2xl relative">
+        <div id="details-card" class="bg-gray-800 border border-gray-700 rounded-2xl w-full max-w-lg p-6 shadow-2xl relative">
             <button type="button" onclick="closeDetailsModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors text-xl p-2 cursor-pointer" title="Închide">
                 <i class="fa-solid fa-xmark"></i>
             </button>
-            <div class="flex gap-5">
+            <div id="details-layout" class="flex gap-5">
                 <img id="details-cover" class="hidden w-28 h-40 object-cover rounded-lg border border-gray-700 flex-shrink-0" src="" alt="Copertă">
                 <div class="flex-1 space-y-1">
                     <h3 id="details-titlu" class="text-lg font-bold text-white"></h3>
