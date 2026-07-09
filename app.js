@@ -146,11 +146,11 @@ function buildTableHeaderUI() {
     
     if (currentCategory === 'filme') {
         headerRow.innerHTML = `
-             <th class="p-3 sortable w-1/5" onclick="handleHeaderSort('titlu')">Titlu original ${getSortIndicator('titlu')}</th>
-            <th class="p-3 sortable w-1/5" onclick="handleHeaderSort('titlu_ro')">Titlu RO ${getSortIndicator('titlu_ro')}</th>
-            <th class="p-3 sortable w-1/5" onclick="handleHeaderSort('actori')">Actori ${getSortIndicator('actori')}</th>
-            <th class="p-3 sortable w-16 text-center leading-tight" onclick="handleHeaderSort('an')">An<br>lansare ${getSortIndicator('an')}</th>
-            <th class="p-3 sortable w-16 text-center leading-tight" onclick="handleHeaderSort('durata')">Durata/<br>Episoade ${getSortIndicator('durata')}</th>
+            <th class="p-3 sortable" onclick="handleHeaderSort('titlu')">Titlu original ${getSortIndicator('titlu')}</th>
+            <th class="p-3 sortable" onclick="handleHeaderSort('titlu_ro')">Titlu RO ${getSortIndicator('titlu_ro')}</th>
+            <th class="p-3 sortable" onclick="handleHeaderSort('actori')">Actori ${getSortIndicator('actori')}</th>
+            <th class="p-3 sortable w-28" onclick="handleHeaderSort('an')">An lansare ${getSortIndicator('an')}</th>
+            <th class="p-3 sortable w-32" onclick="handleHeaderSort('durata')">Durata/Episoade ${getSortIndicator('durata')}</th>
             <th class="p-3 text-center w-32">Vezi detalii</th>
         `;
     } else {
@@ -277,8 +277,8 @@ function renderTable() {
                 <td class="p-3 font-semibold text-white">${item.titlu}</td>
                 <td class="p-3 text-gray-300">${item.titlu_ro || '-'}</td>
                 <td class="p-3 text-xs text-gray-400 italic">${item.actori || '-'}</td>
-                <td class="p-3 text-xs text-gray-400 text-center">${item.an || '-'}</td>
-                <td class="p-3 text-xs text-gray-400 font-mono text-center">${item.durata || '-'}</td>
+                <td class="p-3 text-xs text-gray-400">${item.an || '-'}</td>
+                <td class="p-3 text-xs text-gray-400 font-mono">${item.durata || '-'}</td>
                 <td class="p-3 text-center">
                     <button onclick="showDetails(${originalIndex})" class="px-3 py-1 bg-slate-700 hover:bg-slate-600 border border-slate-600 text-white text-xs font-bold rounded-lg transition cursor-pointer">
                         <i class="fa-solid fa-eye mr-1"></i> Vezi detalii
@@ -626,9 +626,38 @@ function showDetails(index) {
     const item = database[currentCategory][index];
     if (!item) return;
 
-    document.getElementById('details-titlu').textContent = item.titlu || '-';
-
+    const card = document.getElementById('details-card');
+    const layout = document.getElementById('details-layout');
+    const titleEl = document.getElementById('details-titlu');
+    const subtitleEl = document.getElementById('details-autor');
+    const restEl = document.getElementById('details-rest');
     const cover = document.getElementById('details-cover');
+
+    card.classList.remove('max-w-lg', 'max-w-3xl', 'p-6', 'p-9');
+    layout.classList.remove('gap-5', 'gap-8');
+    cover.classList.remove('w-28', 'h-40', 'w-44', 'h-44');
+    titleEl.classList.remove('text-lg', 'text-2xl');
+    subtitleEl.classList.remove('text-sm', 'text-xl');
+    restEl.classList.remove('text-xs', 'text-lg');
+
+    if (currentCategory === 'muzica') {
+        card.classList.add('max-w-3xl', 'p-9');
+        layout.classList.add('gap-8');
+        cover.classList.add('w-44', 'h-44');
+        titleEl.classList.add('text-2xl');
+        subtitleEl.classList.add('text-xl');
+        restEl.classList.add('text-lg');
+    } else {
+        card.classList.add('max-w-lg', 'p-6');
+        layout.classList.add('gap-5');
+        cover.classList.add('w-28', 'h-40');
+        titleEl.classList.add('text-lg');
+        subtitleEl.classList.add('text-sm');
+        restEl.classList.add('text-xs');
+    }
+
+    titleEl.textContent = item.titlu || '-';
+
     if (item.url_img && item.url_img.trim() !== "" && item.url_img.toLowerCase().startsWith('http')) {
         cover.src = item.url_img.trim();
         cover.classList.remove('hidden');
@@ -637,8 +666,8 @@ function showDetails(index) {
         cover.classList.add('hidden');
     }
 
-    const subtitle = document.getElementById('details-autor');
-    const rest = document.getElementById('details-rest');
+    const subtitle = subtitleEl;
+    const rest = restEl;
 
     if (currentCategory === 'filme') {
         subtitle.textContent = item.regizor ? `Regizor: ${item.regizor}` : '';
