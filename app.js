@@ -8,8 +8,8 @@ let currentSortOrder = 'asc';
 
 let database = { filme: [], muzica: [], carti: [] };
 
-const SUPABASE_URL = 'https://kavrguvwfgbdsviswkug.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_T6V8UZVfJTQ-btiR1TJHww_ssDdgiU4';
+const SUPABASE_URL = 'https://pkonooojzkngdyrvgvhp.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBrb25vb29qemtuZ2R5cnZndmhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA1MzkxMTUsImV4cCI6MjEwNjExNTExNX0.vHPjzyuPEvmJ24Sx3tH7WRYkNyru559pGt3JgGymBL8';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 async function loadDatabase() {
@@ -456,7 +456,7 @@ function generateFormFieldsHTML() {
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Cod Element *</label><input type="text" id="form-cod" required class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
                 <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tip Format</label><input type="text" id="form-tip" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
-            </div>
+                </div>
             <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Autor / Artist *</label><input type="text" id="form-autor" required class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
             <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Titlu *</label><input type="text" id="form-titlu" required class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
             <div class="flex flex-col"><label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Gen / Domeniu</label><input type="text" id="form-gen" class="w-full px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"></div>
